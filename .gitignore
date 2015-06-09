@@ -2,3 +2,4 @@
 build/gpu_deformation.sdf
 *.tlog
 tmp/windows/gpu_deformation/x64/debug/vc120.idb
+*.idb

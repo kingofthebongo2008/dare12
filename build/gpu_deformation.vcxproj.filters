@@ -22,6 +22,12 @@
     <ClInclude Include="..\src\precompiled.h">
       <Filter>header files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\distance.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\voisinage.h">
+      <Filter>header files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="readMe.txt" />
