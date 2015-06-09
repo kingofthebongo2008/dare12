@@ -1,0 +1,735 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+		]
+	},
+	"buffers":
+	[
+		{
+			"settings":
+			{
+				"buffer_size": 0,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "Searching 16 files for \"forceinline\"\n\n/home/stefan/freelance-private/rhondaeldridge/src/column_data.h:\n   20              int64_t m_orig_lower_val;\n   21  \n   22:             __host__ __device__ __forceinline decoder(int64_t orig_lower_val) : m_orig_lower_val(orig_lower_val)\n   23              {\n   24  \n   25              }\n   26  \n   27:             __host__ __device__ __forceinline value_type operator() (compressed_type r) const\n   28              {\n   29                  return static_cast<value_type> (m_orig_lower_val + r);\n   ..\n   42          }\n   43  \n   44:         __host__ __device__ __forceinline iterator begin()\n   45          {\n   46              return iterator(m_data, decoder(m_orig_lower_val));\n   47          }\n   48  \n   49:         __host__ __device__ __forceinline iterator end()\n   50          {\n   51              return iterator(m_data + m_orig_record_count, decoder(m_orig_lower_val));\n   52          }\n   53  \n   54:         __host__ __device__ __forceinline const iterator begin() const\n   55          {\n   56              return iterator(m_data, decoder(m_orig_lower_val));\n   57          }\n   58  \n   59:         __host__ __device__ __forceinline const iterator end() const\n   60          {\n   61              return iterator(m_data + m_orig_record_count, decoder(m_orig_lower_val));\n\n/home/stefan/freelance-private/rhondaeldridge/src/column_iterator.h:\n   51      public:\n   52  \n   53:         __host__ __device__ __forceinline column_iterator(compressed_iterator iterator, decoder d) : m_iterator( iterator ), m_d(d)\n   54          { \n   55      \n   ..\n   57  \n   58  \n   59:         __host__ __device__ __forceinline this_type operator++(int32_t)\n   60          {\n   61              this_type t = *this;\n   ..\n   64          }\n   65  \n   66:         __host__ __device__ __forceinline this_type& operator++()\n   67          {\n   68              m_iterator++;\n   ..\n   70          }\n   71  \n   72:         __host__ __device__ __forceinline reference operator*() const\n   73          {\n   74              return m_d(*m_iterator);\n   75          }\n   76  \n   77:         template <typename distance> __host__ __device__ __forceinline this_type operator+(distance d) const\n   78          {\n   79              return this_type(m_iterator + d, m_d);\n   80          }\n   81  \n   82:         template <typename distance> __host__ __device__ __forceinline this_type& operator+=(distance d)\n   83          {\n   84              m_iterator -= d;\n   ..\n   86          }\n   87  \n   88:         template <typename distance> __host__ __device__ __forceinline this_type operator-(distance d) const\n   89          {\n   90              return this_type(m_iterator - d, m_d);\n   91          }\n   92  \n   93:         template <typename distance> __host__ __device__ __forceinline this_type& operator-=(distance d)\n   94          {\n   95              m_iterator -= d;\n   ..\n   97          }\n   98  \n   99:         __host__ __device__ __forceinline difference_type operator-(this_type o) const\n  100          {\n  101              return m_iterator - o.m_iterator;\n  102          }\n  103  \n  104:         template <typename distance> __host__ __device__ __forceinline reference operator[](distance d) const\n  105          {\n  106              return m_d(m_iterator[d]);\n  107          }\n  108  \n  109:         template <typename distance> __host__ __device__ __forceinline pointer operator->()\n  110          {\n  111              return &m_d(*m_iterator);\n  112          }\n  113  \n  114:         __host__ __device__ __forceinline bool operator == (const this_type& o) const\n  115          {\n  116              return m_iterator == o.m_iterator;\n  117          }\n  118  \n  119:         __host__ __device__ __forceinline bool operator != (const this_type& o) const\n  120          {\n  121              return m_iterator != o.m_iterator;\n  122          }\n  123  \n  124:         __host__ __device__ __forceinline bool operator < (const this_type& o) const\n  125          {\n  126              return m_iterator < o.m_iterator;\n\n20 matches across 2 files\n\n\nSearching 16 files for \"forceinline\"\n\n/home/stefan/freelance-private/rhondaeldridge/src/column_iterator.h:\n   51      public:\n   52  \n   53:         __host__ __device__ __forceinline column_iterator(compressed_iterator iterator, decoder d) : m_iterator( iterator ), m_d(d)\n   54          { \n   55      \n   ..\n   57  \n   58  \n   59:         __host__ __device__ __forceinline this_type operator++(int32_t)\n   60          {\n   61              this_type t = *this;\n   ..\n   64          }\n   65  \n   66:         __host__ __device__ __forceinline this_type& operator++()\n   67          {\n   68              m_iterator++;\n   ..\n   70          }\n   71  \n   72:         __host__ __device__ __forceinline reference operator*() const\n   73          {\n   74              return m_d(*m_iterator);\n   75          }\n   76  \n   77:         template <typename distance> __host__ __device__ __forceinline this_type operator+(distance d) const\n   78          {\n   79              return this_type(m_iterator + d, m_d);\n   80          }\n   81  \n   82:         template <typename distance> __host__ __device__ __forceinline this_type& operator+=(distance d)\n   83          {\n   84              m_iterator -= d;\n   ..\n   86          }\n   87  \n   88:         template <typename distance> __host__ __device__ __forceinline this_type operator-(distance d) const\n   89          {\n   90              return this_type(m_iterator - d, m_d);\n   91          }\n   92  \n   93:         template <typename distance> __host__ __device__ __forceinline this_type& operator-=(distance d)\n   94          {\n   95              m_iterator -= d;\n   ..\n   97          }\n   98  \n   99:         __host__ __device__ __forceinline difference_type operator-(this_type o) const\n  100          {\n  101              return m_iterator - o.m_iterator;\n  102          }\n  103  \n  104:         template <typename distance> __host__ __device__ __forceinline reference operator[](distance d) const\n  105          {\n  106              return m_d(m_iterator[d]);\n  107          }\n  108  \n  109:         template <typename distance> __host__ __device__ __forceinline pointer operator->()\n  110          {\n  111              return &m_d(*m_iterator);\n  112          }\n  113  \n  114:         __host__ __device__ __forceinline bool operator == (const this_type& o) const\n  115          {\n  116              return m_iterator == o.m_iterator;\n  117          }\n  118  \n  119:         __host__ __device__ __forceinline bool operator != (const this_type& o) const\n  120          {\n  121              return m_iterator != o.m_iterator;\n  122          }\n  123  \n  124:         __host__ __device__ __forceinline bool operator < (const this_type& o) const\n  125          {\n  126              return m_iterator < o.m_iterator;\n\n14 matches in 1 file\n\n\nSearching 16 files for \"forceinline\"\n\n0 matches across 0 files\n",
+			"settings":
+			{
+				"buffer_size": 6905,
+				"line_ending": "Unix",
+				"name": "Find Results",
+				"scratch": true
+			}
+		},
+		{
+			"file": "/home/stefan/freelance-private/rhondaeldridge/src/column_iterator.h",
+			"settings":
+			{
+				"buffer_size": 4510,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/stefan/freelance-private/rhondaeldridge/src/main4.cu",
+			"settings":
+			{
+				"buffer_size": 4539,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/stefan/freelance-private/rhondaeldridge/src/column_data.h",
+			"settings":
+			{
+				"buffer_size": 2766,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/stefan/freelance-private/rhondaeldridge/src/cuda_memory_helper.h",
+			"settings":
+			{
+				"buffer_size": 3894,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/stefan/freelance-private/rhondaeldridge/src/column_filters.h",
+			"settings":
+			{
+				"buffer_size": 5898,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/stefan/freelance-private/rhondaeldridge/.git/COMMIT_EDITMSG",
+			"settings":
+			{
+				"buffer_size": 22,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/stefan/freelance-private/rhondaeldridge/src/Makefile",
+			"settings":
+			{
+				"buffer_size": 7634,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/stefan/freelance-private/rhondaeldridge/src/column_operators.h",
+			"settings":
+			{
+				"buffer_size": 3296,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/stefan/freelance-private/rhondaeldridge/src/cuda_helper.h",
+			"settings":
+			{
+				"buffer_size": 1492,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "Packages/User/sublimetext-cuda-cpp/cuda-c++.sublime-build",
+	"command_palette":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/home/stefan/freelance-private/rhondaeldridge/src"
+	],
+	"file_history":
+	[
+		"/home/stefan/freelance-private/rhondaeldridge/src/cuda_helper.h",
+		"/home/stefan/freelance-private/rhondaeldridge/src/filter_iterator.h",
+		"/home/stefan/git/coredump/surge/fortran/model1/makefile",
+		"/home/stefan/git/coredump/test/project4/model.f",
+		"/home/stefan/git/coredump/test/project4/result.txt",
+		"/home/stefan/git/coredump/test/project4/force2.cu"
+	],
+	"find":
+	{
+		"height": 25.0
+	},
+	"find_in_files":
+	{
+		"height": 93.0,
+		"where_history":
+		[
+			""
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"forcein",
+			"forceinline",
+			"force1"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			""
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 8,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 10,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6905,
+						"regions":
+						{
+							"match":
+							{
+								"flags": 112,
+								"regions":
+								[
+									[
+										197,
+										208
+									],
+									[
+										375,
+										386
+									],
+									[
+										602,
+										613
+									],
+									[
+										781,
+										792
+									],
+									[
+										980,
+										991
+									],
+									[
+										1171,
+										1182
+									],
+									[
+										1454,
+										1465
+									],
+									[
+										1645,
+										1656
+									],
+									[
+										1812,
+										1823
+									],
+									[
+										1966,
+										1977
+									],
+									[
+										2158,
+										2169
+									],
+									[
+										2374,
+										2385
+									],
+									[
+										2570,
+										2581
+									],
+									[
+										2786,
+										2797
+									],
+									[
+										2953,
+										2964
+									],
+									[
+										3171,
+										3182
+									],
+									[
+										3376,
+										3387
+									],
+									[
+										3533,
+										3544
+									],
+									[
+										3722,
+										3733
+									],
+									[
+										3911,
+										3922
+									],
+									[
+										4236,
+										4247
+									],
+									[
+										4427,
+										4438
+									],
+									[
+										4594,
+										4605
+									],
+									[
+										4748,
+										4759
+									],
+									[
+										4940,
+										4951
+									],
+									[
+										5156,
+										5167
+									],
+									[
+										5352,
+										5363
+									],
+									[
+										5568,
+										5579
+									],
+									[
+										5735,
+										5746
+									],
+									[
+										5953,
+										5964
+									],
+									[
+										6158,
+										6169
+									],
+									[
+										6315,
+										6326
+									],
+									[
+										6504,
+										6515
+									],
+									[
+										6693,
+										6704
+									]
+								],
+								"scope": ""
+							}
+						},
+						"selection":
+						[
+							[
+								6842,
+								6842
+							]
+						],
+						"settings":
+						{
+							"detect_indentation": false,
+							"line_numbers": false,
+							"output_tag": 3,
+							"result_base_dir": "",
+							"result_file_regex": "^([A-Za-z\\\\/<].*):$",
+							"result_line_regex": "^ +([0-9]+):",
+							"scroll_past_end": true,
+							"syntax": "Packages/Default/Find Results.hidden-tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 3553.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 9,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "/home/stefan/freelance-private/rhondaeldridge/src/column_iterator.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4510,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1765,
+								1765
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 204.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "/home/stefan/freelance-private/rhondaeldridge/src/main4.cu",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4539,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3765,
+								3765
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/User/sublimetext-cuda-cpp/cuda-c++.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1083.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 7,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "/home/stefan/freelance-private/rhondaeldridge/src/column_data.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2766,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2117,
+								2117
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 972.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "/home/stefan/freelance-private/rhondaeldridge/src/cuda_memory_helper.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3894,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3245,
+								3245
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2244.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 8,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "/home/stefan/freelance-private/rhondaeldridge/src/column_filters.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 5898,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								352,
+								352
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2193.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "/home/stefan/freelance-private/rhondaeldridge/.git/COMMIT_EDITMSG",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 22,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								22,
+								22
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "/home/stefan/freelance-private/rhondaeldridge/src/Makefile",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 7634,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								6884,
+								6884
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Makefile/Makefile.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 3321.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "/home/stefan/freelance-private/rhondaeldridge/src/column_operators.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3296,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3193,
+								3193
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1843.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 10,
+					"file": "/home/stefan/freelance-private/rhondaeldridge/src/cuda_helper.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1492,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 25.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"project": "gpu_filtering.sublime-project",
+	"replace":
+	{
+		"height": 46.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+			[
+				"cudam",
+				"cuda_memory_helper.h"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 267.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
