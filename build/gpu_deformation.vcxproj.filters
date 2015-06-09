@@ -28,6 +28,12 @@
     <ClInclude Include="..\src\voisinage.h">
       <Filter>header files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\imaging.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\imaging_utils.h">
+      <Filter>header files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="readMe.txt" />
