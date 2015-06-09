@@ -22,43 +22,8 @@
     <ClInclude Include="..\src\precompiled.h">
       <Filter>header files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\filter_iterator.h">
-      <Filter>header files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\cuda_memory_helper.h">
-      <Filter>header files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\cuda_helper.h">
-      <Filter>header files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\column_iterator.h">
-      <Filter>header files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\column_filters.h">
-      <Filter>header files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\column_operators.h">
-      <Filter>header files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\gpu_db.h">
-      <Filter>header files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\column_data.h">
-      <Filter>header files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\column_data_filter.h">
-      <Filter>header files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\gpu_db_io.h">
-      <Filter>header files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="readMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <CudaCompile Include="..\src\main4.cu">
-      <Filter>source Files</Filter>
-    </CudaCompile>
   </ItemGroup>
 </Project>
