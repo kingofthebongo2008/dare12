@@ -12,13 +12,17 @@ namespace imaging
     typedef os::windows::com_ptr<IWICImagingFactory>     wic_imaging_factory;
     typedef os::windows::com_ptr<IWICStream>             wic_stream;
     typedef os::windows::com_ptr<IWICBitmapDecoder>      wic_decoder;
+    typedef os::windows::com_ptr<IWICBitmapEncoder>      wic_encoder;
     typedef os::windows::com_ptr<IWICBitmapFrameDecode>  wic_frame_decode;
+    typedef os::windows::com_ptr<IWICBitmapFrameEncode>  wic_frame_encode;
     typedef os::windows::com_ptr<IWICBitmapSource>       wic_bitmap_source;
     typedef os::windows::com_ptr<IWICComponentInfo>      wic_component_info;
     typedef os::windows::com_ptr<IWICPixelFormatInfo>    wic_pixel_format_info;
 
+    typedef os::windows::com_ptr<IPropertyBag2>          property_bag2;
 
-    wic_imaging_factory create_factory()
+
+    inline wic_imaging_factory create_factory()
     {
         using namespace os::windows;
         wic_imaging_factory factory;
@@ -26,7 +30,7 @@ namespace imaging
         return std::move(factory);
     }
 
-    wic_stream create_stream(wic_imaging_factory f, const wchar_t* path)
+    inline wic_stream create_stream_reading(wic_imaging_factory f, const wchar_t* path)
     {
         using namespace os::windows;
 
@@ -38,7 +42,19 @@ namespace imaging
         return std::move(stream);
     }
 
-    wic_decoder create_decoder_reading(wic_imaging_factory f, wic_stream s)
+    inline wic_stream create_stream_writing(wic_imaging_factory f, const wchar_t* path)
+    {
+        using namespace os::windows;
+
+        wic_stream stream;
+
+        throw_if_failed<com_exception>(f->CreateStream(&stream));
+        throw_if_failed<com_exception>(stream->InitializeFromFilename(path, GENERIC_WRITE));
+
+        return std::move(stream);
+    }
+
+    inline wic_decoder create_decoder_reading(wic_imaging_factory f, wic_stream s)
     {
         using namespace os::windows;
 
@@ -48,7 +64,18 @@ namespace imaging
         return std::move(decoder);
     }
 
-    wic_frame_decode create_decode_frame(wic_decoder decoder)
+    inline wic_encoder create_encoder_writing(wic_imaging_factory f, wic_stream s)
+    {
+        using namespace os::windows;
+
+        wic_encoder encoder;
+        throw_if_failed<com_exception>(f->CreateEncoder( GUID_ContainerFormatPng, nullptr, &encoder));
+        throw_if_failed<com_exception>(encoder->Initialize(s.get(), WICBitmapEncoderNoCache));
+
+        return std::move(encoder);
+    }
+
+    inline wic_frame_decode create_decode_frame(wic_decoder decoder)
     {
         using namespace os::windows;
         wic_frame_decode frame;
@@ -58,8 +85,20 @@ namespace imaging
         return frame;
     }
 
+    inline wic_frame_encode create_encode_frame(wic_encoder encoder)
+    {
+        using namespace os::windows;
 
-    wic_component_info create_component_info(wic_imaging_factory factory, REFGUID targetGuid)
+        wic_frame_encode frame;
+        property_bag2 bag;
+
+        throw_if_failed<com_exception>( encoder->CreateNewFrame( &frame, &bag ) );
+        throw_if_failed<com_exception>( frame->Initialize( bag.get() ) );
+
+        return frame;
+    }
+
+    inline wic_component_info create_component_info(wic_imaging_factory factory, REFGUID targetGuid)
     {
         using namespace os::windows;
         wic_component_info r;
@@ -69,7 +108,7 @@ namespace imaging
         return r;
     }
 
-    static size_t wic_bits_per_pixel(wic_imaging_factory factory, REFGUID targetGuid)
+    inline size_t wic_bits_per_pixel(wic_imaging_factory factory, REFGUID targetGuid)
     {
         auto info = create_component_info(factory, targetGuid);
         using namespace os::windows;
@@ -90,7 +129,6 @@ namespace imaging
         throw_if_failed<com_exception>(pixel_info->GetBitsPerPixel(&bpp));
         return bpp;
     }
-
 
     class bitmap_source
     {
@@ -130,4 +168,6 @@ namespace imaging
 
         wic_bitmap_source m_source;
     };
+
+
 }

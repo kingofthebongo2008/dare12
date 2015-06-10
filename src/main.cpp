@@ -28,8 +28,6 @@ static void initialize_cuda()
 }
 
 
-
-
 int32_t main( int argc, char const* argv[] )
 {
     using namespace     os::windows;
@@ -38,9 +36,12 @@ int32_t main( int argc, char const* argv[] )
     fs::media_source source(L"../../../media/");
 
     auto url0 = fs::build_media_url(source, L"essaisynth2.png");
+    auto url1 = fs::build_media_url(source, L"essaisynth1.png");
 
+    //read the png texture
     auto texture = imaging::read_texture(url0.get_path());
 
+    imaging::write_texture( texture, url1.get_path() );
 
 
 
