@@ -5,9 +5,12 @@
 #include <sys/sys_profile_timer.h>
 #include <os/windows/com_initializer.h>
 
+#include "imaging_utils_cuda.h"
+
 #include "cuda_helper.h"
 #include "imaging.h"
 #include "imaging_utils.h"
+
 
 #include <fs/fs_media.h>
 

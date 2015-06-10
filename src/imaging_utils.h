@@ -16,15 +16,37 @@ namespace imaging
     class cpu_texture_storage
     {
         public:
-        cpu_texture_storage(uint8_t pixels[]) :
+
+        class storage_proxy
+        {
+
+            public:
+
+            storage_proxy(uint8_t* pixels) : m_pixels(pixels)
+            {
+
+            }
+
+            uint8_t* get_pixels_cpu() const
+            {
+                return m_pixels;
+            }
+
+            private:
+
+            uint8_t* m_pixels;
+        };
+
+
+        cpu_texture_storage(uint8_t pixels[], size_t size ) :
         m_pixels(pixels, std::default_delete< uint8_t[] >())
         {
 
         }
 
-        uint8_t*  get_pixels_cpu() const
+        storage_proxy  get_pixels() const
         {
-            return m_pixels.get();
+            return storage_proxy(m_pixels.get());
         }
 
         private:
@@ -43,7 +65,7 @@ namespace imaging
             , m_size(size)
             , m_row_pitch(pitch)
             , m_image_type(type)
-            , pixels_storage( pixels )
+            , pixels_storage( pixels, size )
         {
         }
 
@@ -149,8 +171,10 @@ namespace imaging
         throw_if_failed<com_exception>(frame0->SetPixelFormat(&formatGUID));
         throw_if_failed<com_exception>(IsEqualGUID(formatGUID, formatGUID_required));
 
+        auto proxy = t.get_pixels();
 
-        throw_if_failed<com_exception>( frame0->WritePixels( t.get_height(), t.get_pitch(), t.get_size(), t.get_pixels_cpu() ) );
+
+        throw_if_failed<com_exception>(frame0->WritePixels(t.get_height(), t.get_pitch(), t.get_size(), proxy.get_pixels_cpu()));
         throw_if_failed<com_exception>( frame0->Commit() );
         throw_if_failed<com_exception>( encoder0->Commit() );
     }
