@@ -94,18 +94,18 @@ namespace imaging
 
     inline cpu_texture read_texture(const wchar_t* url_path)
     {
-        auto factory = imaging::create_factory();
-        auto stream0 = imaging::create_stream_reading(factory, url_path );
-        auto decoder0 = imaging::create_decoder_reading(factory, stream0);
-        auto frame0 = imaging::create_decode_frame(decoder0);
+        auto factory    = imaging::create_factory();
+        auto stream0    = imaging::create_stream_reading(factory, url_path );
+        auto decoder0   = imaging::create_decoder_reading(factory, stream0);
+        auto frame0     = imaging::create_decode_frame(decoder0);
 
         imaging::bitmap_source bitmap(frame0);
 
-        auto format = bitmap.get_pixel_format();
-        auto size = bitmap.get_size();
+        auto format     = bitmap.get_pixel_format();
+        auto size       = bitmap.get_size();
 
-        auto bpp = imaging::wic_bits_per_pixel(factory, GUID_WICPixelFormat24bppBGR);
-        auto row_pitch = (bpp * std::get<0>(size) +7) / 8;
+        auto bpp        = imaging::wic_bits_per_pixel(factory, GUID_WICPixelFormat24bppBGR);
+        auto row_pitch  = (bpp * std::get<0>(size) +7) / 8;
         auto row_height = std::get<1>(size);
         auto image_size = row_pitch * row_height;
 
