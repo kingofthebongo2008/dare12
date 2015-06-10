@@ -13,19 +13,38 @@ namespace imaging
         grayscale = 1
     };
 
-    class texture
+    class cpu_texture_storage
     {
         public:
-        texture(uint32_t width, uint32_t height, size_t bpp, size_t size, uint32_t pitch, image_type type, uint8_t pixels[]) :
+        cpu_texture_storage(uint8_t pixels[]) :
+        m_pixels(pixels, std::default_delete< uint8_t[] >())
+        {
+
+        }
+
+        uint8_t*  get_pixels_cpu() const
+        {
+            return m_pixels.get();
+        }
+
+        private:
+
+        std::shared_ptr< uint8_t > m_pixels;
+    };
+
+    template <typename pixels_storage>
+    class texture : public pixels_storage
+    {
+        public:
+        texture( uint32_t width, uint32_t height, size_t bpp, size_t size, uint32_t pitch, image_type type, uint8_t pixels[] ) :
             m_width(width)
             , m_height(height)
             , m_bpp(bpp)
             , m_size(size)
             , m_row_pitch(pitch)
             , m_image_type(type)
-            , m_pixels(pixels, std::default_delete< uint8_t[] >() )
+            , pixels_storage( pixels )
         {
-
         }
 
         uint32_t get_width() const
@@ -53,10 +72,6 @@ namespace imaging
             return m_image_type;
         }
 
-        uint8_t*  get_pixels() const
-        {
-            return m_pixels.get();
-        }
 
         size_t get_size() const
         {
@@ -72,12 +87,12 @@ namespace imaging
 
         uint32_t    m_width;
         uint32_t    m_height;
-
-        std::shared_ptr< uint8_t > m_pixels;
     };
 
+    typedef texture < cpu_texture_storage > cpu_texture;
 
-    inline texture read_texture(const wchar_t* url_path)
+
+    inline cpu_texture read_texture(const wchar_t* url_path)
     {
         auto factory = imaging::create_factory();
         auto stream0 = imaging::create_stream_reading(factory, url_path );
@@ -97,10 +112,10 @@ namespace imaging
         std::unique_ptr<uint8_t[]> temp(new (std::nothrow) uint8_t[image_size]);
 
         bitmap.copy_pixels(nullptr, row_pitch, image_size, temp.get());
-        return texture(std::get<0>(size), std::get<1>(size), bpp, image_size, row_pitch, image_type::rgb, temp.release());
+        return cpu_texture(std::get<0>(size), std::get<1>(size), bpp, image_size, row_pitch, image_type::rgb, temp.release());
     }
 
-    inline void write_texture( const texture& t, const wchar_t* url_path )
+    inline void write_texture(const cpu_texture& t, const wchar_t* url_path)
     {
         using namespace os::windows;
 
@@ -135,7 +150,7 @@ namespace imaging
         throw_if_failed<com_exception>(IsEqualGUID(formatGUID, formatGUID_required));
 
 
-        throw_if_failed<com_exception>( frame0->WritePixels( t.get_height(), t.get_pitch(), t.get_size(), t.get_pixels() ) );
+        throw_if_failed<com_exception>( frame0->WritePixels( t.get_height(), t.get_pitch(), t.get_size(), t.get_pixels_cpu() ) );
         throw_if_failed<com_exception>( frame0->Commit() );
         throw_if_failed<com_exception>( encoder0->Commit() );
     }
