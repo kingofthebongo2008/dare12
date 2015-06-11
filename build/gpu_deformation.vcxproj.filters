@@ -37,6 +37,15 @@
     <ClInclude Include="..\src\imaging_utils_cuda.h">
       <Filter>header files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cuda_memory_helper.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\imaging_utils_base.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\imaging_utils_cpu.h">
+      <Filter>header files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="readMe.txt" />

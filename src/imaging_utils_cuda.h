@@ -6,35 +6,10 @@
 #include <cuda_runtime.h>
 
 #include "cuda_helper.h"
+#include "cuda_memory_helper.h"
 
 namespace imaging
 {
-    struct cuda_default_delete
-    {
-        cuda_default_delete() throw()
-        {
-
-        }
-
-        void operator()( uint8_t* pointer ) const throw()
-        {	
-            ::cudaFree( pointer );
-        }
-    };
-
-    struct cuda_free_array
-    {
-        cuda_free_array() throw()
-        {
-
-        }
-
-        void operator()(cudaArray_t pointer) const throw()
-        {
-            ::cudaFreeArray(pointer);
-        }
-    };
-
     class cuda_texture_storage
     {
         public:
@@ -58,7 +33,7 @@ namespace imaging
         };
 
         cuda_texture_storage( uint8_t pixels[], size_t size ) :
-        m_pixels(pixels, cuda_default_delete() )
+        m_pixels(pixels, cuda::default_delete<uint8_t>() )
         , m_size(size)
         {
 

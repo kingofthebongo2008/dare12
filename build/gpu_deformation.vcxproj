@@ -115,9 +115,12 @@
     <ClCompile Include="..\src\precompiled.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\cuda_memory_helper.h" />
     <ClInclude Include="..\src\distance.h" />
     <ClInclude Include="..\src\imaging.h" />
     <ClInclude Include="..\src\imaging_utils.h" />
+    <ClInclude Include="..\src\imaging_utils_base.h" />
+    <ClInclude Include="..\src\imaging_utils_cpu.h" />
     <ClInclude Include="..\src\imaging_utils_cuda.h" />
     <ClInclude Include="..\src\precompiled.h" />
     <ClInclude Include="..\src\voisinage.h" />
