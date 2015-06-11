@@ -48,6 +48,11 @@ namespace imaging
             return storage_proxy(std::shared_ptr<uint8_t>( pixels.release() , std::default_delete< uint8_t[] >()));
         }
 
+        uint8_t*    get_gpu_pixels() const
+        {
+            return m_pixels.get();
+        }
+
         private:
 
         std::shared_ptr< uint8_t > m_pixels;    //points to device memory

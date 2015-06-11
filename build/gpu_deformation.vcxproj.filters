@@ -50,4 +50,9 @@
   <ItemGroup>
     <Text Include="readMe.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="..\src\kernel_grayscale.cu">
+      <Filter>source Files</Filter>
+    </CudaCompile>
+  </ItemGroup>
 </Project>
