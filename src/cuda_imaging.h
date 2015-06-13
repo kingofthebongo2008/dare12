@@ -57,6 +57,11 @@ namespace cuda
         uint32_t    m_height;
     };
 
+    enum border_type : int32_t
+    {
+        clamp = 0
+    };
+
     template <typename texture > inline image_kernel_info create_image_kernel_info(const texture& t)
     {
         return image_kernel_info( t.get_bpp(), t.get_size(), t.get_pitch(), t.get_width(), t.get_height() );
@@ -80,6 +85,19 @@ namespace cuda
 
     template < typename t > __device__ inline const t* sample_2d(const uint8_t * buffer, const image_kernel_info& info, uint32_t x, uint32_t y)
     {
+        return reinterpret_cast<const t*> (buffer + y * info.pitch() + x * sizeof(t));
+    }
+
+    template < typename t, border_type u > __device__ inline const t* sample_2d(const uint8_t * buffer, const image_kernel_info& info, uint32_t x, uint32_t y )
+    {
+        //clamp to border
+
+        x = min(info.width(), x);
+        x = max(0U, x);
+
+        y = min(info.height(), y);
+        y = max(0U, y);
+
         return reinterpret_cast<const t*> (buffer + y * info.pitch() + x * sizeof(t));
     }
 

@@ -59,7 +59,8 @@ int32_t main( int argc, char const* argv[] )
 
     auto url0 = fs::build_media_url(source, L"essaisynth2.png");
     auto url1 = fs::build_media_url(source, L"essaisynth1.png");
-    auto url2 = fs::build_media_url(source, L"essaisynth0.png");
+    auto url2 = fs::build_media_url(source, L"essaisynth2_grayscale.png");
+    auto url3 = fs::build_media_url(source, L"essaisynth2_canny.png");
 
     //read the png texture
     auto texture = imaging::read_texture(url0.get_path());
@@ -72,12 +73,12 @@ int32_t main( int argc, char const* argv[] )
 
 
     auto gray   = cuda::create_grayscale_texture(t);
-
-    auto canny  = cuda::create_canny_texture(t, 0.05f);
+    auto canny  = cuda::create_canny_texture(gray, 0.05f);
 
 
     imaging::write_texture( texture, url1.get_path() );
     imaging::write_texture( gray, url2.get_path());
+    imaging::write_texture( canny, url3.get_path());
 
 
    
