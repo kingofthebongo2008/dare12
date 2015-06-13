@@ -115,6 +115,8 @@
     <ClCompile Include="..\src\precompiled.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\cuda_helper.h" />
+    <ClInclude Include="..\src\cuda_imaging.h" />
     <ClInclude Include="..\src\cuda_memory_helper.h" />
     <ClInclude Include="..\src\distance.h" />
     <ClInclude Include="..\src\imaging.h" />
@@ -126,7 +128,8 @@
     <ClInclude Include="..\src\voisinage.h" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="..\src\kernel_grayscale.cu" />
+    <CudaCompile Include="..\src\cuda_canny.cu" />
+    <CudaCompile Include="..\src\cuda_grayscale.cu" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
