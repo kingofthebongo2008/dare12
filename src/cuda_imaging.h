@@ -69,5 +69,11 @@ namespace cuda
     {
         return reinterpret_cast<const t*> (buffer + y * info.pitch() + x * sizeof(t));
     }
+
+    template < typename t > __device__ inline void write_2d( uint8_t * buffer, const image_kernel_info& info, uint32_t x, uint32_t y, t value )
+    {
+        auto v = reinterpret_cast<t*> ( buffer + y * info.pitch() + x * sizeof(t) );
+        *v = value;
+    }
 }
 

@@ -29,8 +29,7 @@ namespace cuda
             auto  gray = 0.2989f * ( r  * r )  + 0.5870f * ( g *  g ) + 0.1140f * ( b  *  b ) ;
             auto  gray_quantized = static_cast<uint8_t> ( sqrtf( gray ) * 255.0f );
             
-
-            grayscale[y * dst.pitch()  + x] = gray_quantized;
+            write_2d(grayscale, dst, x, y, gray_quantized);
         }
     }
 
