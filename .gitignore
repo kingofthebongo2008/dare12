@@ -1,7 +1,7 @@
 *.opensdf
 build/gpu_deformation.sdf
 *.tlog
-tmp/windows/gpu_deformation/x64/debug/vc120.idb
+tmp/*
 *.idb
 media/essaisynth0.png
 media/essaisynth1.png
