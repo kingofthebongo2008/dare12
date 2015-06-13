@@ -1,7 +1,9 @@
 #pragma once
 
-#include "imaging_utils.h"
 #include <cstdint>
+
+#include "imaging_utils.h"
+
 
 namespace cuda
 {
@@ -55,9 +57,20 @@ namespace cuda
         uint32_t    m_height;
     };
 
-    template <typename texture > image_kernel_info create_image_kernel_info(const texture& t)
+    template <typename texture > inline image_kernel_info create_image_kernel_info(const texture& t)
     {
         return image_kernel_info( t.get_bpp(), t.get_size(), t.get_pitch(), t.get_width(), t.get_height() );
+    }
+
+    template <imaging::image_type t> inline imaging::cuda_texture create_cuda_texture( uint32_t width, uint32_t height )
+    {
+        auto bpp = imaging::get_bpp<t>();
+        auto row_pitch = ( bpp * width + 7) / 8;
+        auto size = row_pitch * height;
+
+        //allocate memory buffer
+        auto memory_buffer = cuda::make_memory_buffer( size );
+        return imaging::cuda_texture(width, height, bpp, size, row_pitch, t, reinterpret_cast<uint8_t*> (memory_buffer->reset()));
     }
 
     __device__ inline bool is_in_interior(const image_kernel_info& info, uint32_t x, uint32_t y)

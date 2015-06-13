@@ -42,6 +42,7 @@ class cuda_initializer
 namespace cuda
 {
     imaging::cuda_texture create_grayscale_texture(const imaging::cuda_texture& texture_color);
+    imaging::cuda_texture create_canny_texture(const imaging::cuda_texture& texture_color, float threshold);
 }
 
 
@@ -50,6 +51,8 @@ int32_t main( int argc, char const* argv[] )
     using namespace     os::windows;
     com_initializer     com;
     cuda_initializer    cuda;
+
+    auto bpp = imaging::get_bpp<imaging::image_type::rgb>();
 
 
     fs::media_source source(L"../../../media/");
@@ -68,12 +71,16 @@ int32_t main( int argc, char const* argv[] )
     imaging::cuda_texture t( texture.get_width(), texture.get_height(), texture.get_bpp(), texture.get_size(), texture.get_pitch(), texture.get_image_type(), reinterpret_cast<uint8_t*> (memory_buffer->reset() ) );
 
 
-    auto gray = cuda::create_grayscale_texture(t);
+    auto gray   = cuda::create_grayscale_texture(t);
+
+    auto canny  = cuda::create_canny_texture(t, 0.05f);
 
 
     imaging::write_texture( texture, url1.get_path() );
     imaging::write_texture( gray, url2.get_path());
 
+
+   
 
     return 0;
 

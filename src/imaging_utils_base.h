@@ -9,8 +9,27 @@ namespace imaging
     enum image_type : int32_t
     {
         rgb = 0,
-        grayscale = 1
+        grayscale = 1,
+        float32 = 2
     };
+
+    template <image_type> inline uint32_t get_bpp();
+
+    template <> inline uint32_t get_bpp< image_type::rgb> ()
+    {
+        return 24;
+    }
+
+    template <> inline uint32_t get_bpp< image_type::grayscale>()
+    {
+        return 8;
+    }
+
+    template <> inline uint32_t get_bpp< image_type::float32>()
+    {
+        return 32;
+    }
+
 
     template <typename pixels_storage>
     class texture : public pixels_storage

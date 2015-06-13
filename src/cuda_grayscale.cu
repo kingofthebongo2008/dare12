@@ -14,7 +14,7 @@ namespace cuda
         uint8_t r;
     };
 
-    __global__ void kernel_gray_scale(const uint8_t* rgb_t, uint8_t* grayscale, image_kernel_info src, image_kernel_info  dst )
+    static __global__ void kernel_gray_scale(const uint8_t* rgb_t, uint8_t* grayscale, image_kernel_info src, image_kernel_info  dst )
     {
         auto x = blockIdx.x * blockDim.x + threadIdx.x;
         auto y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -43,18 +43,13 @@ namespace cuda
         return std::make_tuple(grid, per_block);
     }
 
-    imaging::cuda_texture create_grayscale_texture ( const imaging::cuda_texture& texture_color )
+    imaging::cuda_texture create_grayscale_texture(const imaging::cuda_texture& texture_color)
     {
-        auto bpp        = 8;
-        auto row_pitch  = (bpp * texture_color.get_width() + 7) / 8;
+    
         auto width      = texture_color.get_width();
         auto height     = texture_color.get_height();
-        auto size       = row_pitch * height;
-
-
-        //allocate memory buffer
-        auto memory_buffer = cuda::make_memory_buffer( size ); 
-        imaging::cuda_texture t( width, height, bpp, size, row_pitch, imaging::image_type::grayscale, reinterpret_cast<uint8_t*> (memory_buffer->reset()) );
+        auto t = create_cuda_texture<imaging::image_type::grayscale>(width, height);
+        
 
         //launch cuda kernel
         auto params = create_texture_kernel_params(width, height);
