@@ -4,38 +4,33 @@
 
 #include <thrust/transform.h>
 
-#include "math_vector.h"
-#include "math_matrix.h"
 
+inline std::ostream& operator<<(std::ostream& s, const float4& p)
+{
+    s << "x: " << p.x << " " << p.y << " " << p.z << " " << p.w << std::endl;
+    return s;
+}
 
 
 namespace freeform
 {
-    __device__ patch cub_bezier_interpol(patch p)
+    __device__ inline float min4(float x0, float x1, float x2, float x3)
     {
-        using namespace math;
-
-        float4  v0 = math::identity_r0();
-        float4  v1 = set( -5.0f / 6.0f  , 3.0f, -3.0f / 2.0f, 1.0f / 3.0f );
-        float4  v2 = swizzle<w, z, y, x> ( v1 );
-        float4  v3 = math::identity_r3();
-
-        float4x4 m = set(v0, v1, v2, v3);
-
-        float4  p0_x = set(p.x0, p.x1, p.x2, p.x3);
-        float4  p0_y = set(p.y0, p.y1, p.y2, p.y3);
-
-        float4  x = mul( m, p0_x);
-        float4  y = mul( m, p0_y);
-
-        patch   r = { 
-                        math::get_x(x), math::get_y(x), math::get_z(x), math::get_w(x),
-                        math::get_x(y), math::get_y(y), math::get_z(y), math::get_w(y),
-                    };
-
-        return r;
+        auto x = min(x0, x1);
+        
+        x = min(x, x2);
+        x = min(x, x3);
+        return x;
     }
 
+    __device__ inline float max4(float x0, float x1, float x2, float x3)
+    {
+        auto x = max(x0, x1);
+
+        x = max(x, x2);
+        x = max(x, x3);
+        return x;
+    }
 
 
     struct generate_patch
@@ -64,7 +59,7 @@ namespace freeform
             return m_center_y + m_radius * sinf((i + step) * m_step);
         }
 
-        __device__ thrust::tuple< freeform::patch, freeform::patch > operator() (uint32_t i) const
+        __device__ thrust::tuple< freeform::patch, freeform::patch, math::float4 > operator() (uint32_t i) const
         {
             float x0 = x(3 * i, 0);
             float x1 = x(3 * i, 1);
@@ -76,11 +71,19 @@ namespace freeform
             float y2 = y(3 * i, 2);
             float y3 = y(3 * i, 3);
 
-
             freeform::patch p0 = { x0, x1, x2, x3, y0, y1, y2, y3 };
             freeform::patch p1 = cub_bezier_interpol( p0 );
 
-            return thrust::make_tuple ( p0, p1 );
+
+            float min_0 = min4(p1.x0, p1.x1, p1.x2, p1.x3);
+            float min_1 = min4(p1.y0, p1.y1, p1.y2, p1.y3);
+            float max_0 = max4(p1.x0, p1.x1, p1.x2, p1.x3);
+            float max_1 = max4(p1.y0, p1.y1, p1.y2, p1.y3);
+
+
+            float4  tab = math::set(min_0, max_0, min_1, max_1 );
+
+            return thrust::make_tuple ( p0, p1, tab );
         }
     };
 
@@ -91,6 +94,7 @@ namespace freeform
 
         thrust::device_vector<freeform::patch> patches;
         thrust::device_vector<freeform::patch> patches_n;
+        thrust::device_vector<math::float4>    tabs;
 
         auto pi = 3.1415926535f;
         auto pas = 2 * pi / patch_count;
@@ -101,21 +105,21 @@ namespace freeform
     
         patches.resize( iterations / 3 );
         patches_n.resize(iterations / 3);
+        tabs.resize(iterations / 3);
 
 
         auto begin  = thrust::make_counting_iterator(0);
         auto end    = begin + iterations / 3;
-        auto o      = thrust::make_zip_iterator(thrust::make_tuple(patches.begin(), patches_n.begin()));
+        auto o      = thrust::make_zip_iterator(thrust::make_tuple(patches.begin(), patches_n.begin(), tabs.begin()));
 
         thrust::transform(begin, end, o, generate_patch(static_cast<float> (center_image_x), static_cast<float> (center_image_y), radius, pas_pt_patch));
 
-
-        thrust::host_vector<freeform::patch> r;
+        thrust::host_vector<math::float4> r;
 
         r.resize(iterations / 3 );
 
-        thrust::copy(patches_n.begin(), patches_n.end(), r.begin());
-        thrust::copy(r.begin(), r.end(), std::ostream_iterator< freeform::patch >(std::cout, " "));
+        thrust::copy(tabs.begin(), tabs.end(), r.begin());
+        thrust::copy(r.begin(), r.end(), std::ostream_iterator< math::float4 >(std::cout, " "));
     }
 }
 
