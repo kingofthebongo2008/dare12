@@ -55,6 +55,9 @@
     <ClInclude Include="..\src\freeform_patch.h">
       <Filter>header files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\math_vector.h">
+      <Filter>header files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="readMe.txt" />

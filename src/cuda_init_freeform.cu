@@ -3,8 +3,44 @@
 #include "freeform_patch.h"
 
 #include <thrust/transform.h>
+
+#include "math_vector.h"
+
+
+
 namespace freeform
 {
+    __device__ patch cub_bezier_interpol(patch p)
+    {
+
+        float v00 = 1.0f;
+        float v01 = 0.0f;
+        float v02 = 0.0f;
+        float v03 = 0.0f;
+
+        float v10 = -5.0f / 6.0f;
+        float v11 = 3.0f;
+        float v12 = -3.0f / 2.0f;
+        float v13 = 1.0f  / 3.0f;
+
+        float v20 = 1.0f / 3.0f;
+        float v21 = -3.0f / 2.0f;
+        float v22 = 3.0f;
+        float v23 = -5.0f / 6.0f;
+
+        float v30 = 0.0f;
+        float v31 = 0.0f;
+        float v32 = 0.0f;
+        float v33 = 1.0f;
+
+
+
+
+
+    }
+
+
+
     struct generate_patch
     {
         float m_center_x;

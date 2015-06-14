@@ -125,6 +125,7 @@
     <ClInclude Include="..\src\imaging_utils_base.h" />
     <ClInclude Include="..\src\imaging_utils_cpu.h" />
     <ClInclude Include="..\src\imaging_utils_cuda.h" />
+    <ClInclude Include="..\src\math_vector.h" />
     <ClInclude Include="..\src\precompiled.h" />
     <ClInclude Include="..\src\voisinage.h" />
   </ItemGroup>
