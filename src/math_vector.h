@@ -7,6 +7,8 @@
 
 namespace math
 {
+    typedef ::float4 float4;
+
     enum component : int32_t
     {
         x = 0,

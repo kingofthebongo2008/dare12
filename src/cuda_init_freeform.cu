@@ -13,31 +13,27 @@ namespace freeform
 {
     __device__ patch cub_bezier_interpol(patch p)
     {
+        using namespace math;
 
-        float v00 = 1.0f;
-        float v01 = 0.0f;
-        float v02 = 0.0f;
-        float v03 = 0.0f;
+        float4  v0 = math::identity_r0();
+        float4  v1 = set( -5.0f / 6.0f  , 3.0f, -3.0f / 2.0f, 1.0f / 3.0f );
+        float4  v2 = swizzle<w, z, y, x> ( v1 );
+        float4  v3 = math::identity_r3();
 
-        float v10 = -5.0f / 6.0f;
-        float v11 = 3.0f;
-        float v12 = -3.0f / 2.0f;
-        float v13 = 1.0f  / 3.0f;
+        float4x4 m = set(v0, v1, v2, v3);
 
-        float v20 = 1.0f / 3.0f;
-        float v21 = -3.0f / 2.0f;
-        float v22 = 3.0f;
-        float v23 = -5.0f / 6.0f;
+        float4  p0_x = set(p.x0, p.x1, p.x2, p.x3);
+        float4  p0_y = set(p.y0, p.y1, p.y2, p.y3);
 
-        float v30 = 0.0f;
-        float v31 = 0.0f;
-        float v32 = 0.0f;
-        float v33 = 1.0f;
+        float4  x = mul( m, p0_x);
+        float4  y = mul( m, p0_y);
 
+        patch   r = { 
+                        math::get_x(x), math::get_y(x), math::get_z(x), math::get_w(x),
+                        math::get_x(y), math::get_y(y), math::get_z(y), math::get_w(y),
+                    };
 
-
-
-
+        return r;
     }
 
 
@@ -82,7 +78,7 @@ namespace freeform
 
 
             freeform::patch p0 = { x0, x1, x2, x3, y0, y1, y2, y3 };
-            freeform::patch p1 = { x0+100, x1+100, x2+100, x3+100, y0+100, y1+100, y2+100, y3+100 };
+            freeform::patch p1 = cub_bezier_interpol( p0 );
 
             return thrust::make_tuple ( p0, p1 );
         }

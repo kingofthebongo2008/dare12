@@ -65,12 +65,24 @@ namespace freeform
             const uint8_t* pix20 = sample_2d< uint8_t, border_type::clamp >(img_in, src, x - 1, y + 1);
             const uint8_t* pix21 = sample_2d< uint8_t, border_type::clamp >(img_in, src, x - 0, y + 1);
             const uint8_t* pix22 = sample_2d< uint8_t, border_type::clamp >(img_in, src, x + 1, y + 1);
-            
+
+            auto  u00 = *pix00;
+            auto  u01 = *pix01;
+            auto  u02 = *pix02;
+
+            auto  u10 = *pix10;
+            auto  u11 = *pix11;
+            auto  u12 = *pix12;
+
+            auto  u20 = *pix20;
+            auto  u21 = *pix21;
+            auto  u22 = *pix22;
+
 
             auto  r = compute_sobel(
-                *pix00, *pix01, *pix02,
-                *pix10, *pix11, *pix12,
-                *pix20, *pix21, *pix22, 1.0f
+                u00, u01, u02,
+                u10, u11, u12,
+                u20, u21, u22, 1.0f
                 );
             
             write_2d<uint8_t>(img_out, dst, x, y, r );

@@ -92,10 +92,10 @@ namespace cuda
     {
         //clamp to border
 
-        x = min(info.width(), x);
+        x = min(info.width()  - 1 , x);
         x = max(0U, x);
 
-        y = min(info.height(), y);
+        y = min( info.height() - 1 , y );
         y = max(0U, y);
 
         return reinterpret_cast<const t*> (buffer + y * info.pitch() + x * sizeof(t));

@@ -35,6 +35,18 @@ namespace math
         return m;
     }
 
+    __device__ inline float4x4 set( float4 v0, float4 v1, float4 v2, float4 v3 )
+    {
+        float4x4 m;
+
+        m.r[0] = v0;
+        m.r[1] = v1;
+        m.r[2] = v2;
+        m.r[3] = v3;
+
+        return m;
+    }
+
     __device__ inline float4x4 load44(const float* __restrict address)
     {
         float4x4 m;
