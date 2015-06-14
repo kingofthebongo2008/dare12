@@ -5,6 +5,7 @@
 #include <thrust/transform.h>
 
 #include "math_vector.h"
+#include "math_matrix.h"
 
 
 

@@ -5,7 +5,6 @@
 #include <device_functions.h>
 #include <vector_functions.h>
 
-
 namespace math
 {
     enum component : int32_t

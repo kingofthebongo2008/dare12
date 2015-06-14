@@ -58,6 +58,9 @@
     <ClInclude Include="..\src\math_vector.h">
       <Filter>header files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\math_matrix.h">
+      <Filter>header files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="readMe.txt" />
