@@ -119,6 +119,7 @@
     <ClInclude Include="..\src\cuda_imaging.h" />
     <ClInclude Include="..\src\cuda_memory_helper.h" />
     <ClInclude Include="..\src\distance.h" />
+    <ClInclude Include="..\src\freeform_patch.h" />
     <ClInclude Include="..\src\imaging.h" />
     <ClInclude Include="..\src\imaging_utils.h" />
     <ClInclude Include="..\src\imaging_utils_base.h" />
@@ -130,6 +131,7 @@
   <ItemGroup>
     <CudaCompile Include="..\src\cuda_canny.cu" />
     <CudaCompile Include="..\src\cuda_grayscale.cu" />
+    <CudaCompile Include="..\src\cuda_init_freeform.cu" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

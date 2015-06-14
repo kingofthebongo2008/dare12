@@ -43,6 +43,14 @@ namespace cuda
 {
     imaging::cuda_texture create_grayscale_texture(const imaging::cuda_texture& texture_color);
     imaging::cuda_texture create_canny_texture(const imaging::cuda_texture& texture_color, float threshold);
+
+    void inititialize_free_form(uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count);
+}
+
+
+static inline float l2_norm(float x, float y)
+{
+    return sqrtf(x * x + y * y);
 }
 
 
@@ -76,10 +84,19 @@ int32_t main( int argc, char const* argv[] )
     auto canny  = cuda::create_canny_texture(gray, 0.05f);
 
 
-    imaging::write_texture( texture, url1.get_path() );
-    imaging::write_texture( gray, url2.get_path());
-    imaging::write_texture( canny, url3.get_path());
+    imaging::write_texture( texture,    url1.get_path() );
+    imaging::write_texture( gray,       url2.get_path() );
+    imaging::write_texture( canny,      url3.get_path() );
 
+
+    auto center_image_x = 240;
+    auto center_image_y = 341;
+    auto x = 341;
+    auto y = 240;
+    auto radius = l2_norm(x - center_image_x, y - center_image_y);
+    auto patch_count = 10;
+
+    cuda::inititialize_free_form( center_image_x, center_image_y, radius, patch_count);
 
    
 

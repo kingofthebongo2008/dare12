@@ -6,7 +6,6 @@
 #include "imaging_utils.h"
 #include "cuda_imaging.h"
 
-#include <math_functions.h>
 
 namespace cuda
 {

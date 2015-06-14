@@ -52,6 +52,9 @@
     <ClInclude Include="..\src\cuda_imaging.h">
       <Filter>header files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\freeform_patch.h">
+      <Filter>header files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="readMe.txt" />
@@ -61,6 +64,9 @@
       <Filter>source Files</Filter>
     </CudaCompile>
     <CudaCompile Include="..\src\cuda_grayscale.cu">
+      <Filter>source Files</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\src\cuda_init_freeform.cu">
       <Filter>source Files</Filter>
     </CudaCompile>
   </ItemGroup>
