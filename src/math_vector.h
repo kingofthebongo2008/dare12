@@ -66,10 +66,13 @@ namespace math
                     break;
                 case component::y:
                     a = v.y;
+                    break;
                 case component::z:
                     a = v.z;
+                    break;
                 case component::w:
                     a = v.w;
+                    break;
             }
             return a;
         }
@@ -412,7 +415,7 @@ namespace math
 
     __device__ inline uint4 and_not(uint4 v1, uint4 v2)
     {
-        return make_uint4(~(v1.x & v2.x), ~(v1.y & v2.y), ~(v1.z & v2.z), ~(v1.w & v2.w));
+        return make_uint4(~(v1.x) & v2.x, ~(v1.y) & v2.y, ~(v1.z) & v2.z, ~(v1.w) & v2.w);
     }
 
     __device__ inline uint4 or(uint4 v1, uint4 v2)
@@ -454,7 +457,7 @@ namespace math
     //simple math operations
     __device__ inline float4 add(float4 v1, float4 v2)
     {
-        return make_float4(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z, v1.w + v1.w);
+        return make_float4(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z, v1.w + v2.w);
     }
 
     //simple math operations
@@ -465,7 +468,7 @@ namespace math
 
     __device__ inline float4 sub(float4 v1, float4 v2)
     {
-        return make_float4(v1.x - v1.y, v1.z - v1.w, v2.x - v2.y, v2.z - v2.w);
+        return make_float4(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z, v1.w - v2.w);
     }
 
     //simple math operations
@@ -476,7 +479,7 @@ namespace math
 
     __device__ inline float4 mul(float4 v1, float4 v2)
     {
-        return make_float4(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z, v1.w * v1.w);
+        return make_float4(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z, v1.w * v2.w);
     }
 
     __device__ inline float4 mul(float4 v, float f)
@@ -492,7 +495,7 @@ namespace math
 
     __device__ inline float4 div(float4 v1, float4 v2)
     {
-        return make_float4(v1.x / v2.x, v1.y / v2.y, v1.z / v2.z, v1.w / v1.w);
+        return make_float4(v1.x / v2.x, v1.y / v2.y, v1.z / v2.z, v1.w / v2.w);
     }
 
     __device__ inline float4 sqrt(float4 v)
@@ -507,7 +510,7 @@ namespace math
 
     __device__ inline float4 rsqrt(float4 v)
     {
-        return make_float4(::rsqrt(v.x), ::rsqrt(v.x), ::rsqrt(v.x), ::rsqrt(v.x));
+        return make_float4(::rsqrt(v.x), ::rsqrt(v.y), ::rsqrt(v.z), ::rsqrt(v.w));
     }
 
     __device__ inline float4 min(float4 v1, float4 v2)
