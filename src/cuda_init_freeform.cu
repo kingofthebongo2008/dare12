@@ -3,6 +3,8 @@
 #include "freeform_patch.h"
 
 #include <thrust/transform.h>
+namespace freeform
+{
     struct generate_patch
     {
         float m_center_x;
@@ -29,7 +31,7 @@
             return m_center_y + m_radius * sinf((i + step) * m_step);
         }
 
-        __device__ freeform::patch operator() (uint32_t i) const
+        __device__ thrust::tuple< freeform::patch, freeform::patch > operator() (uint32_t i) const
         {
             float x0 = x(3 * i, 0);
             float x1 = x(3 * i, 1);
@@ -42,20 +44,20 @@
             float y3 = y(3 * i, 3);
 
 
-            freeform::patch p = { x0, x1, x2, x3, y0, y1, y2, y3 };
+            freeform::patch p0 = { x0, x1, x2, x3, y0, y1, y2, y3 };
+            freeform::patch p1 = { x0+100, x1+100, x2+100, x3+100, y0+100, y1+100, y2+100, y3+100 };
 
-            return p;
+            return thrust::make_tuple ( p0, p1 );
         }
     };
 
-namespace freeform
-{
     void inititialize_free_form( uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count )
     {
         thrust::device_vector<float> x;
         thrust::device_vector<float> y;
 
         thrust::device_vector<freeform::patch> patches;
+        thrust::device_vector<freeform::patch> patches_n;
 
         auto pi = 3.1415926535f;
         auto pas = 2 * pi / patch_count;
@@ -65,18 +67,21 @@ namespace freeform
 
     
         patches.resize( iterations / 3 );
+        patches_n.resize(iterations / 3);
 
 
         auto begin  = thrust::make_counting_iterator(0);
         auto end    = begin + iterations / 3;
+        auto o      = thrust::make_zip_iterator(thrust::make_tuple(patches.begin(), patches_n.begin()));
 
-        thrust::transform(begin, end, patches.begin(), generate_patch(static_cast<float> (center_image_x), static_cast<float> (center_image_y), radius, pas_pt_patch));
+        thrust::transform(begin, end, o, generate_patch(static_cast<float> (center_image_x), static_cast<float> (center_image_y), radius, pas_pt_patch));
 
 
         thrust::host_vector<freeform::patch> r;
+
         r.resize(iterations / 3 );
 
-        thrust::copy(patches.begin(), patches.end(), r.begin());
+        thrust::copy(patches_n.begin(), patches_n.end(), r.begin());
         thrust::copy(r.begin(), r.end(), std::ostream_iterator< freeform::patch >(std::cout, " "));
     }
 }
