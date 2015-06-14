@@ -7,7 +7,7 @@
 #include "cuda_imaging.h"
 
 
-namespace cuda
+namespace freeform
 {
 
     static inline std::tuple < dim3, dim3 > create_texture_kernel_params( uint32_t width, uint32_t height )
@@ -44,8 +44,9 @@ namespace cuda
     }
 
 
-    static __global__ void sobel(const uint8_t* img_in, uint8_t* img_out, image_kernel_info src, image_kernel_info  dst)
+    static __global__ void sobel(const uint8_t* img_in, uint8_t* img_out, cuda::image_kernel_info src, cuda::image_kernel_info  dst)
     {
+        using namespace cuda;
         auto x = blockIdx.x * blockDim.x + threadIdx.x;
         auto y = blockIdx.y * blockDim.y + threadIdx.y;
 
@@ -79,9 +80,10 @@ namespace cuda
 
     imaging::cuda_texture create_canny_texture(const imaging::cuda_texture& texture_grayscale, float threshold)
     {
+        using namespace cuda;
         auto width = texture_grayscale.get_width();
         auto height = texture_grayscale.get_height();
-        auto t = create_cuda_texture<imaging::image_type::grayscale>(width, height);
+        auto t = cuda::create_cuda_texture<imaging::image_type::grayscale>(width, height);
 
         auto params     = create_texture_kernel_params(width, height);
 

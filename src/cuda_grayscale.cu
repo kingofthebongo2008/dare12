@@ -5,7 +5,7 @@
 #include "imaging_utils.h"
 #include "cuda_imaging.h"
 
-namespace cuda
+namespace freeform
 {
     struct rgb
     {
@@ -14,8 +14,9 @@ namespace cuda
         uint8_t r;
     };
 
-    static __global__ void kernel_gray_scale(const uint8_t* rgb_t, uint8_t* grayscale, image_kernel_info src, image_kernel_info  dst )
+    static __global__ void kernel_gray_scale(const uint8_t* rgb_t, uint8_t* grayscale, cuda::image_kernel_info src, cuda::image_kernel_info  dst)
     {
+        using namespace cuda;
         auto x = blockIdx.x * blockDim.x + threadIdx.x;
         auto y = blockIdx.y * blockDim.y + threadIdx.y;
 
@@ -45,7 +46,7 @@ namespace cuda
 
     imaging::cuda_texture create_grayscale_texture(const imaging::cuda_texture& texture_color)
     {
-    
+        using namespace cuda;
         auto width      = texture_color.get_width();
         auto height     = texture_color.get_height();
         auto t = create_cuda_texture<imaging::image_type::grayscale>(width, height);

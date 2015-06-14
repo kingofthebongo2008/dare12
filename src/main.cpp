@@ -39,7 +39,7 @@ class cuda_initializer
     }
 };
 
-namespace cuda
+namespace freeform
 {
     imaging::cuda_texture create_grayscale_texture(const imaging::cuda_texture& texture_color);
     imaging::cuda_texture create_canny_texture(const imaging::cuda_texture& texture_color, float threshold);
@@ -80,8 +80,8 @@ int32_t main( int argc, char const* argv[] )
     imaging::cuda_texture t( texture.get_width(), texture.get_height(), texture.get_bpp(), texture.get_size(), texture.get_pitch(), texture.get_image_type(), reinterpret_cast<uint8_t*> (memory_buffer->reset() ) );
 
 
-    auto gray   = cuda::create_grayscale_texture(t);
-    auto canny  = cuda::create_canny_texture(gray, 0.05f);
+    auto gray   = freeform::create_grayscale_texture(t);
+    auto canny  = freeform::create_canny_texture(gray, 0.05f);
 
 
     imaging::write_texture( texture,    url1.get_path() );
@@ -96,7 +96,7 @@ int32_t main( int argc, char const* argv[] )
     auto radius = l2_norm(x - center_image_x, y - center_image_y);
     auto patch_count = 10;
 
-    cuda::inititialize_free_form( center_image_x, center_image_y, radius, patch_count);
+    freeform::inititialize_free_form( center_image_x, center_image_y, radius, patch_count);
 
    
 

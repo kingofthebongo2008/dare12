@@ -48,7 +48,7 @@
         }
     };
 
-namespace cuda
+namespace freeform
 {
     void inititialize_free_form( uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count )
     {
