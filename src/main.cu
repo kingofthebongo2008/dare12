@@ -50,7 +50,8 @@ namespace freeform
 
 
     thrust::tuple< patches, patches, thrust::device_vector<math::float4> > inititialize_free_form(uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count);
-    patches test_distances(patches& p, patches& p_n);
+    patches test_distances(const patches& p, const patches& p_n);
+    patches normal_curve(const patches& n);
 }
 
 static inline float l2_norm(float x, float y)
@@ -104,6 +105,9 @@ int32_t main( int argc, char const* argv[] )
     auto init = freeform::inititialize_free_form( center_image_x, center_image_y, radius, patch_count);
 
     auto m    = freeform::test_distances(thrust::get<0>(init), thrust::get<1>(init) );
+
+    auto n    = freeform::normal_curve(m);
+    
 
    
 

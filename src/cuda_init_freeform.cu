@@ -11,7 +11,6 @@ inline std::ostream& operator<<(std::ostream& s, const float4& p)
     return s;
 }
 
-
 namespace freeform
 {
     __device__ inline float min4(float x0, float x1, float x2, float x3)

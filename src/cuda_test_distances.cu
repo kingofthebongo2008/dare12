@@ -69,7 +69,7 @@ namespace freeform
 
     //thrust::copy(g.begin(), g.end(), std::ostream_iterator< float >(std::cout, " "));
 
-    patches test_distances(patches& n, patches& np)
+    patches test_distances(const patches& n, const patches& np)
     {
         patches                      n2;
         thrust::device_vector<uint32_t> element_count;

@@ -81,5 +81,8 @@
     <CudaCompile Include="..\src\cuda_test_distances.cu">
       <Filter>source Files</Filter>
     </CudaCompile>
+    <CudaCompile Include="..\src\cuda_normal_curve.cu">
+      <Filter>source Files</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>
