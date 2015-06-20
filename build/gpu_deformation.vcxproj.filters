@@ -14,9 +14,6 @@
     <ClCompile Include="..\src\precompiled.cpp">
       <Filter>source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\main.cpp">
-      <Filter>source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\precompiled.h">
@@ -61,6 +58,9 @@
     <ClInclude Include="..\src\math_matrix.h">
       <Filter>header files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\math_functions.h">
+      <Filter>header files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="readMe.txt" />
@@ -73,6 +73,12 @@
       <Filter>source Files</Filter>
     </CudaCompile>
     <CudaCompile Include="..\src\cuda_init_freeform.cu">
+      <Filter>source Files</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\src\main.cu">
+      <Filter>source Files</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\src\cuda_test_distances.cu">
       <Filter>source Files</Filter>
     </CudaCompile>
   </ItemGroup>
