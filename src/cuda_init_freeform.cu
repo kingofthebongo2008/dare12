@@ -87,13 +87,13 @@ namespace freeform
         }
     };
 
-    void inititialize_free_form( uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count )
+    thrust::tuple< patches, patches, thrust::device_vector<math::float4> > inititialize_free_form(uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count)
     {
         thrust::device_vector<float> x;
         thrust::device_vector<float> y;
 
-        thrust::device_vector<freeform::patch> patches;
-        thrust::device_vector<freeform::patch> patches_n;
+        thrust::device_vector<freeform::patch> n;
+        thrust::device_vector<freeform::patch> np;
         thrust::device_vector<math::float4>    tabs;
 
         auto pi = 3.1415926535f;
@@ -103,23 +103,19 @@ namespace freeform
         auto iterations = static_cast<uint32_t> (ceilf(2 * pi / pas_pt_patch));
 
     
-        patches.resize( iterations / 3 );
-        patches_n.resize(iterations / 3);
+        n.resize( iterations / 3 );
+        np.resize(iterations / 3);
         tabs.resize(iterations / 3);
 
 
         auto begin  = thrust::make_counting_iterator(0);
         auto end    = begin + iterations / 3;
-        auto o      = thrust::make_zip_iterator(thrust::make_tuple(patches.begin(), patches_n.begin(), tabs.begin()));
+        auto o      = thrust::make_zip_iterator(thrust::make_tuple(n.begin(), np.begin(), tabs.begin()));
 
         thrust::transform(begin, end, o, generate_patch(static_cast<float> (center_image_x), static_cast<float> (center_image_y), radius, pas_pt_patch));
 
-        thrust::host_vector<math::float4> r;
 
-        r.resize(iterations / 3 );
-
-        thrust::copy(tabs.begin(), tabs.end(), r.begin());
-        thrust::copy(r.begin(), r.end(), std::ostream_iterator< math::float4 >(std::cout, " "));
+        return std::move(thrust::make_tuple(std::move(n), std::move(np), std::move(tabs)));
     }
 }
 
