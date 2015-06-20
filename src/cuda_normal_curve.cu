@@ -28,6 +28,12 @@ namespace freeform
         float y;
     };
 
+    __device__ inline normal_patch operator+( const normal_patch& a, const normal_patch& b)
+    {
+        normal_patch r = { a.x + b.x, a.y + b.y };
+        return r;
+    }
+
     struct normal_patch_difference
     {
         __device__ normal_patch operator() (const normal_patch& a, const normal_patch& b) const
@@ -94,6 +100,39 @@ namespace freeform
         }
     };
 
+    struct generate_normals2
+    {
+        thrust::device_ptr<normal_patch> m_np;
+        thrust::device_ptr<patch>        m_p;
+
+        generate_normals2(thrust::device_ptr<normal_patch> np, thrust::device_ptr<patch> p) : m_np(np), m_p(p)
+        {
+
+        }
+
+        __device__ void operator() ( uint32_t i )  const
+        {
+            normal_patch* np = m_np.get();
+            patch*        p  = m_p.get();
+
+            auto x0 = np[3 * i].x;
+            auto y0 = np[3 * i].y;
+
+            auto x1 = np[3 * i + 1].x;
+            auto y1 = np[3 * i + 1].y;
+
+            auto x2 = np[3 * i + 2].x;
+            auto y2 = np[3 * i + 2].y;
+
+            auto x3 = np[3 * i + 3].x;
+            auto y3 = np[3 * i + 3].y;
+
+            patch r = { x0, x1, x2, x3, y0, y1, y2, y3 };
+
+            p[i] = r;
+        }
+    };
+
 
     patches normal_curve(const patches& n)
     {
@@ -127,17 +166,22 @@ namespace freeform
         normals.resize(n2.size());
         thrust::transform(norm.begin(), norm.end(), normals.begin(), normalize());
 
+        normal_patches n3;
+        n3.resize(n2.size() + 1 );
+
+        thrust::transform(normals.begin(), normals.end(), n2.begin(), n3.begin(), thrust::plus< normal_patch>());
+        thrust::copy(n3.begin(), n3.begin() + 1, n3.end() - 1 );
         
+      
+        patches p;
+        p.resize( n.size() );
 
-        /*
-        thrust::transform( n.end() - 1, n.end() , n2.begin(),     generate_normals());
-        thrust::transform( n.begin(),   n.begin() + 1,  n2.end() - 1 ,  generate_normals());
-        */
 
-        thrust::copy(normals.begin(), normals.end(), std::ostream_iterator< normal_patch >(std::cout, " "));
-        
+        thrust::for_each(cb, cb + n3.size() / 3 , generate_normals2( &n3[0], &p[0] ) );
 
-        return n;
+        //thrust::copy(p.begin(), p.end(), std::ostream_iterator< patch >(std::cout, " "));
+
+        return p;
     }
 }
 
