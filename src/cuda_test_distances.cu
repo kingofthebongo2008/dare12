@@ -36,34 +36,30 @@ namespace freeform
 
             auto m   = fmax(fmax(d_0, d_1), d_2);
 
-            float4 u = math::set(0.0f, 1.0f / 6.0f, 2.0f / 6.0f, 3.0f / 6.0f);
-            
-            auto r = multi_eval_patch(p, u);
-
             return m;
         }
     };
 
-
-
+    template <typename uint32_t patch_type>
     struct multi_eval_patches
     {
-        math::float4 m_u;
-
-        multi_eval_patches(math::float4 u) : m_u(u)
+        multi_eval_patches()
         {
 
         }
 
-        __device__ float operator() (const patch& p) const
+        __device__ patch operator() (const patch& p) const
         {
-            auto d_0 = math::distance(p.x0, p.y0, p.x1, p.y1);
-            auto d_1 = math::distance(p.x1, p.y1, p.x2, p.y2);
-            auto d_2 = math::distance(p.x2, p.y2, p.x3, p.y3);
-
-            auto m = fmax(fmax(d_0, d_1), d_2);
-
-            return m;
+            if (patch_type == 0)
+            {
+                float4 u = math::set(0.0f, 1.0f / 6.0f, 2.0f / 6.0f, 3.0f / 6.0f);
+                return multi_eval_patch(p, u);
+            }
+            else
+            {
+                float4 u = math::set(3.0f / 6.0f, 4.0f / 6.0f, 5.0f / 6.0f, 6.0f / 6.0f);
+                return multi_eval_patch(p, u);
+            }
         }
     };
 
@@ -86,10 +82,9 @@ namespace freeform
         g2.resize(maxi);
         n2.resize(maxi);
 
-        thrust::transform( n.begin(), n.end(), distances.begin(), distance_control_points(13) );
-
-
-        
+        thrust::transform(n.begin(), n.end(), distances.begin(), distance_control_points(13) );
+        thrust::transform(n.begin(), n.end(), g1.begin(),        multi_eval_patches<0>());
+        thrust::transform(n.begin(), n.end(), g2.begin(),        multi_eval_patches<1>());
         
         return g1;
     }
