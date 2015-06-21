@@ -136,6 +136,7 @@
     <CudaCompile Include="..\src\cuda_grayscale.cu" />
     <CudaCompile Include="..\src\cuda_init_freeform.cu" />
     <CudaCompile Include="..\src\cuda_normal_curve.cu" />
+    <CudaCompile Include="..\src\cuda_polygon_computation.cu" />
     <CudaCompile Include="..\src\cuda_test_distances.cu" />
     <CudaCompile Include="..\src\main.cu" />
   </ItemGroup>

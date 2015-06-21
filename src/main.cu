@@ -53,10 +53,12 @@ namespace freeform
 
 
     thrust::tuple< patches, patches, thrust::device_vector<math::float4> > inititialize_free_form(uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count);
+
     patches test_distances(const patches& p, const patches& p_n);
     patches normal_curve(const patches& n);
 
-    patches displace_points(const patches& m, const patches& nor, const imaging::cuda_texture& grad);
+    thrust::tuple<points, thrust::device_vector<uint8_t> >          displace_points(const patches& m, const patches& nor, const imaging::cuda_texture& grad);
+    thrust::tuple<patches, thrust::device_vector<math::float4> >    polygon_computation(points& n);
 }
 
 static inline float l2_norm(float x, float y)
@@ -115,7 +117,8 @@ int32_t main( int argc, char const* argv[] )
 
     auto m    = freeform::test_distances(thrust::get<0>(init), thrust::get<1>(init) );
     auto nor  = freeform::normal_curve(m);
-    auto n    = displace_points( m, nor, canny );
+    auto n_s  = displace_points( m, nor, canny );
+    auto n    = polygon_computation(thrust::get<0>(n_s));
 
 
     std::chrono::steady_clock::time_point end1 = std::chrono::steady_clock::now();

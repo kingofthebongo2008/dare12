@@ -24,7 +24,14 @@ namespace freeform
 
     };
 
+    struct point
+    {
+        float x;
+        float y;
+    };
+
     typedef thrust::device_vector< patch > patches;
+    typedef thrust::device_vector< point > points;
 
 
     inline std::ostream& operator<<(std::ostream& s, const patch& p)
@@ -34,6 +41,11 @@ namespace freeform
         return s;
     }
 
+    inline std::ostream& operator<<(std::ostream& s, const point& p)
+    {
+        s << "x: " << p.x << " " << p.y << std::endl;
+        return s;
+    }
 
     __device__ inline patch cub_bezier_interpol(patch p)
     {
@@ -97,5 +109,23 @@ namespace freeform
         patch r = { r0.x, r1.x, r2.x, r3.x, r0.y, r1.y, r2.y, r3.y };
 
         return r;
+    }
+
+    __device__ inline float min4(float x0, float x1, float x2, float x3)
+    {
+        auto x = min(x0, x1);
+
+        x = min(x, x2);
+        x = min(x, x3);
+        return x;
+    }
+
+    __device__ inline float max4(float x0, float x1, float x2, float x3)
+    {
+        auto x = max(x0, x1);
+
+        x = max(x, x2);
+        x = max(x, x3);
+        return x;
     }
 }

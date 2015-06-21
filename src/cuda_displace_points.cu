@@ -25,19 +25,6 @@ inline std::ostream& operator<<(std::ostream& s, const float4& p)
 
 namespace freeform
 {
-    
-    struct point
-    {
-        float x;
-        float y;
-    };
-
-    static inline std::ostream& operator<<(std::ostream& s, const point& p)
-    {
-        s << "x: " << p.x << " " << p.y << std::endl;
-        return s;
-    }
-
     typedef thrust::device_vector<point> points;
 
     struct to_points_kernel
@@ -181,7 +168,7 @@ namespace freeform
         }
     };
     
-    patches displace_points(const patches& m, const patches& nor, const imaging::cuda_texture& grad )
+    thrust::tuple<points, thrust::device_vector<uint8_t> >  displace_points(const patches& m, const patches& nor, const imaging::cuda_texture& grad )
     {
         using namespace cuda;
         
@@ -201,12 +188,12 @@ namespace freeform
         
         thrust::for_each(b, e, displace_points_kernel( info, grad.get_gpu_pixels() ));
 
-
+        /*
         thrust::copy(pt_n.begin(), pt_n.end(), std::ostream_iterator< point >(std::cout, " "));
-
         thrust::copy(stop.begin(), stop.end(), std::ostream_iterator< uint8_t >(std::cout, " "));
+        */
         
-        return m;
+        return thrust::make_tuple(pt_n, stop);
     }
 }
 

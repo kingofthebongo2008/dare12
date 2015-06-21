@@ -13,25 +13,6 @@ inline std::ostream& operator<<(std::ostream& s, const float4& p)
 
 namespace freeform
 {
-    __device__ inline float min4(float x0, float x1, float x2, float x3)
-    {
-        auto x = min(x0, x1);
-        
-        x = min(x, x2);
-        x = min(x, x3);
-        return x;
-    }
-
-    __device__ inline float max4(float x0, float x1, float x2, float x3)
-    {
-        auto x = max(x0, x1);
-
-        x = max(x, x2);
-        x = max(x, x3);
-        return x;
-    }
-
-
     struct generate_patch
     {
         float m_center_x;
