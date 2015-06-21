@@ -5,7 +5,7 @@
 
 namespace gpu_deformation
 {
-    inline void voisinage(float x, float y, int32_t v1[], int32_t v2[])
+    __device__ inline void voisinage(float x, float y, int32_t v1[], int32_t v2[])
     {
         int32_t x1 = static_cast<int32_t> (floorf(x));
         int32_t y1 = static_cast<int32_t> (floorf(y));

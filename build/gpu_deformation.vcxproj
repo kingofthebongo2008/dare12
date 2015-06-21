@@ -132,6 +132,7 @@
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="..\src\cuda_canny.cu" />
+    <CudaCompile Include="..\src\cuda_displace_points.cu" />
     <CudaCompile Include="..\src\cuda_grayscale.cu" />
     <CudaCompile Include="..\src\cuda_init_freeform.cu" />
     <CudaCompile Include="..\src\cuda_normal_curve.cu" />

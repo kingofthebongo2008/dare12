@@ -54,7 +54,7 @@ namespace freeform
     };
 
 
-    inline std::ostream& operator<<(std::ostream& s, const normal_patch& p)
+    static inline std::ostream& operator<<(std::ostream& s, const normal_patch& p)
     {
         s << "x: " << p.x << " " << p.y <<  std::endl;
         return s;

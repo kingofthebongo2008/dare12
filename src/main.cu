@@ -1,6 +1,9 @@
 #include "precompiled.h"
+
+#include <chrono>
 #include <cstdint>
 #include <memory>
+
 
 #include <thrust/tuple.h>
 #include <thrust/device_vector.h>
@@ -52,6 +55,8 @@ namespace freeform
     thrust::tuple< patches, patches, thrust::device_vector<math::float4> > inititialize_free_form(uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count);
     patches test_distances(const patches& p, const patches& p_n);
     patches normal_curve(const patches& n);
+
+    patches displace_points(const patches& m, const patches& nor, const imaging::cuda_texture& grad);
 }
 
 static inline float l2_norm(float x, float y)
@@ -95,6 +100,10 @@ int32_t main( int argc, char const* argv[] )
     imaging::write_texture( canny,      url3.get_path() );
 
 
+
+    //filter out the records that match the composite criteria
+    std::chrono::steady_clock::time_point start1 = std::chrono::steady_clock::now();
+
     auto center_image_x = 240;
     auto center_image_y = 341;
     auto x = 341;
@@ -105,10 +114,12 @@ int32_t main( int argc, char const* argv[] )
     auto init = freeform::inititialize_free_form( center_image_x, center_image_y, radius, patch_count);
 
     auto m    = freeform::test_distances(thrust::get<0>(init), thrust::get<1>(init) );
+    auto nor  = freeform::normal_curve(m);
+    auto n    = displace_points( m, nor, canny );
 
-    auto n    = freeform::normal_curve(m);
-    
 
+    std::chrono::steady_clock::time_point end1 = std::chrono::steady_clock::now();
+    std::cout << "Filtering on device took: " << std::chrono::duration_cast<std::chrono::milliseconds>(end1 - start1).count() << " ms" << std::endl;
    
 
     return 0;
