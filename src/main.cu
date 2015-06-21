@@ -7,6 +7,7 @@
 
 #include <thrust/tuple.h>
 #include <thrust/device_vector.h>
+#include <thrust/sort.h>
 
 #include <sys/sys_profile_timer.h>
 #include <os/windows/com_initializer.h>
@@ -52,13 +53,15 @@ namespace freeform
     imaging::cuda_texture create_canny_texture(const imaging::cuda_texture& texture_color, float threshold);
 
 
-    thrust::tuple< patches, patches, thrust::device_vector<math::float4> > inititialize_free_form(uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count);
+    thrust::tuple< patches, patches, tabs > inititialize_free_form(uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count);
 
     patches test_distances(const patches& p, const patches& p_n);
     patches normal_curve(const patches& n);
 
-    thrust::tuple<points, thrust::device_vector<uint8_t> >          displace_points(const patches& m, const patches& nor, const imaging::cuda_texture& grad);
-    thrust::tuple<patches, thrust::device_vector<math::float4> >    polygon_computation(points& n);
+    thrust::tuple<points, thrust::device_vector<uint8_t> >      displace_points(const patches& m, const patches& nor, const imaging::cuda_texture& grad);
+    thrust::tuple<patches, tabs >                               polygon_computation(points& n);
+    
+    patches flip(const patches& p, const tabs& t);
 }
 
 static inline float l2_norm(float x, float y)
@@ -66,6 +69,23 @@ static inline float l2_norm(float x, float y)
     return sqrtf(x * x + y * y);
 }
 
+struct lexicographical_sorter
+{
+    __device__ bool operator()(freeform::tab a0, freeform::tab b0) const
+    {
+        math::float4 a = a0.m_aabb;
+        math::float4 b = b0.m_aabb;
+
+        return a.x < b.x || (a.x == b.x && (a.y < b.y || (a.y = b.y && (a.z < b.z || (a.z == b.z && a.w < b.w)))));
+    }
+};
+
+
+inline std::ostream& operator<<(std::ostream& s, const float4& p)
+{
+    s << "x: " << p.x << " " << p.y << " " << p.z << " " << p.w << std::endl;
+    return s;
+}
 
 int32_t main( int argc, char const* argv[] )
 {
@@ -120,9 +140,20 @@ int32_t main( int argc, char const* argv[] )
     auto n_s  = displace_points( m, nor, canny );
     auto n    = polygon_computation(thrust::get<0>(n_s));
 
+    thrust::sort(thrust::get<1>(n).begin(), thrust::get<1>(n).end(), lexicographical_sorter());
 
+    auto flipped = flip(thrust::get<0>(n), thrust::get<1>(n));
+
+   
+    thrust::host_vector<freeform::tab > test;
+    test.resize(thrust::get<1>(n).size());
+
+    thrust::copy(thrust::get<1>(n).begin(), thrust::get<1>(n).end(), test.begin() );
+    
     std::chrono::steady_clock::time_point end1 = std::chrono::steady_clock::now();
     std::cout << "Filtering on device took: " << std::chrono::duration_cast<std::chrono::milliseconds>(end1 - start1).count() << " ms" << std::endl;
+
+    thrust::copy(test.begin(), test.end(), std::ostream_iterator< freeform::tab >(std::cout, " "));
    
 
     return 0;

@@ -39,7 +39,7 @@ namespace freeform
             return m_center_y + m_radius * sinf((i + step) * m_step);
         }
 
-        __device__ thrust::tuple< freeform::patch, freeform::patch, math::float4 > operator() (uint32_t i) const
+        __device__ thrust::tuple< patch, patch, tab > operator() (uint32_t i) const
         {
             float x0 = x(3 * i, 0);
             float x1 = x(3 * i, 1);
@@ -61,20 +61,23 @@ namespace freeform
             float max_1 = max4(p1.y0, p1.y1, p1.y2, p1.y3);
 
 
-            float4  tab = math::set(min_0, max_0, min_1, max_1 );
+            float4  tb = math::set(min_0, max_0, min_1, max_1 );
+            
+            tab     t(i, tb);
 
-            return thrust::make_tuple ( p0, p1, tab );
+
+            return thrust::make_tuple ( p0, p1, t );
         }
     };
 
-    thrust::tuple< patches, patches, thrust::device_vector<math::float4> > inititialize_free_form(uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count)
+    thrust::tuple< patches, patches, tabs > inititialize_free_form(uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count)
     {
         thrust::device_vector<float> x;
         thrust::device_vector<float> y;
 
-        thrust::device_vector<freeform::patch> n;
-        thrust::device_vector<freeform::patch> np;
-        thrust::device_vector<math::float4>    tabs;
+        patches n;
+        patches np;
+        tabs    tabs;
 
         auto pi = 3.1415926535f;
         auto pas = 2 * pi / patch_count;

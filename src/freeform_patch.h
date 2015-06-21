@@ -30,8 +30,26 @@ namespace freeform
         float y;
     };
 
-    typedef thrust::device_vector< patch > patches;
-    typedef thrust::device_vector< point > points;
+    struct tab
+    {
+        uint32_t        m_index;
+        math::float4    m_aabb;
+
+        tab()
+        {
+
+        }
+
+        __device__ __host__ tab( uint32_t index, math::float4 aabb ) :
+            m_index(index)
+            , m_aabb( aabb )
+        {
+        }
+    };
+
+    typedef thrust::device_vector< patch >          patches;
+    typedef thrust::device_vector< point >          points;
+    typedef thrust::device_vector< tab>             tabs;
 
 
     inline std::ostream& operator<<(std::ostream& s, const patch& p)
@@ -44,6 +62,12 @@ namespace freeform
     inline std::ostream& operator<<(std::ostream& s, const point& p)
     {
         s << "x: " << p.x << " " << p.y << std::endl;
+        return s;
+    }
+
+    inline std::ostream& operator<<(std::ostream& s, const tab& p)
+    {
+        s << p.m_index << "\t" << p.m_aabb.x << "\t" << p.m_aabb.y << "\t" << p.m_aabb.z << "\t" << p.m_aabb.w <<  std::endl;
         return s;
     }
 
@@ -127,5 +151,42 @@ namespace freeform
         x = max(x, x2);
         x = max(x, x3);
         return x;
+    }
+
+    __device__ inline bool intersect_bounding_boxes(math::float4 a, math::float4 b )
+    {
+        float x1 = a.x;
+        float y1 = a.y;
+
+        float x2 = a.z;
+        float y2 = a.w;
+
+        float x3 = b.x;
+        float y3 = b.y;
+
+        float x4 = b.z;
+        float y4 = b.w;
+
+        if (x2 < x3)
+        {
+            return true;
+        }
+        
+        if ((x2 == x3) && (y2 < y3 || y4 < y1))
+        {
+            return true;
+        }
+
+        if (x4 < x1)
+        {
+            return true;
+        }
+
+        if ((x4 == x1) && (y4 < y1 || y2 < y3))
+        {
+            return true;
+        }
+
+        return false;
     }
 }

@@ -32,7 +32,7 @@ namespace freeform
         {
 
         }
-        __device__ thrust::tuple< freeform::patch, math::float4 > operator() (uint32_t i) const
+        __device__ thrust::tuple< patch, tab > operator() (uint32_t i) const
         {
             const point* n = m_n.get();
 
@@ -59,16 +59,17 @@ namespace freeform
             float max_0 = max4(p1.x0, p1.x1, p1.x2, p1.x3);
             float max_1 = max4(p1.y0, p1.y1, p1.y2, p1.y3);
 
-            float4  tab = math::set(min_0, max_0, min_1, max_1);
+            float4  tb = math::set(min_0, max_0, min_1, max_1);
+            tab     t(i, tb);
 
-            return thrust::make_tuple( p1, tab );
+            return thrust::make_tuple( p1, t );
         }
     };
 
-    thrust::tuple<patches, thrust::device_vector<math::float4> > polygon_computation(points& n )
+    thrust::tuple<patches, tabs > polygon_computation(points& n )
     {
         patches p;
-        thrust::device_vector<math::float4>    tabs;
+        tabs    tabs;
 
         p.resize(n.size() / 4);
         tabs.resize(n.size() / 4);

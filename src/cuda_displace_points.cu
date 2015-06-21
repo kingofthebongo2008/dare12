@@ -16,13 +16,6 @@
 
 
 
-
-inline std::ostream& operator<<(std::ostream& s, const float4& p)
-{
-    s << "x: " << p.x << " " << p.y << " " << p.z << " " << p.w << std::endl;
-    return s;
-}
-
 namespace freeform
 {
     typedef thrust::device_vector<point> points;

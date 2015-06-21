@@ -90,5 +90,8 @@
     <CudaCompile Include="..\src\cuda_polygon_computation.cu">
       <Filter>source Files</Filter>
     </CudaCompile>
+    <CudaCompile Include="..\src\cuda_flip.cu">
+      <Filter>source Files</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>
