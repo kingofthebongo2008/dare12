@@ -61,7 +61,7 @@ namespace freeform
     thrust::tuple<points, thrust::device_vector<uint8_t> >      displace_points(const patches& m, const patches& nor, const imaging::cuda_texture& grad);
     thrust::tuple<patches, tabs >                               polygon_computation(points& n);
     
-    patches flip(const patches& p, const tabs& t);
+    patches flip(const patches& p, tabs& t);
 }
 
 static inline float l2_norm(float x, float y)
