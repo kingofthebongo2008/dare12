@@ -164,7 +164,7 @@ namespace freeform
 
     patches flip(const patches& p, tabs& t )
     {
-        auto triangular_size = (p.size() * p.size() + 1) / 2;
+        auto triangular_size = ( p.size() * ( p.size() - 1) / 2 ) ;
 
         thrust::device_vector < bool> tests;
         tests.resize( triangular_size );

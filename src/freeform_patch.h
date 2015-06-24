@@ -35,7 +35,7 @@ namespace freeform
         uint32_t        m_index;
         math::float4    m_aabb;
 
-        tab()
+        __device__ __host__ tab()
         {
 
         }
@@ -155,38 +155,40 @@ namespace freeform
 
     __device__ inline bool intersect_bounding_boxes(math::float4 a, math::float4 b )
     {
-        float x1 = a.x;
-        float y1 = a.y;
+        //a and b contain: min_x, max_x, min_y, max_y for an aabb
 
-        float x2 = a.z;
+        float x1 = a.x;
+        float y1 = a.z;
+
+        float x2 = a.y;
         float y2 = a.w;
 
         float x3 = b.x;
-        float y3 = b.y;
+        float y3 = b.z;
 
-        float x4 = b.z;
+        float x4 = b.y;
         float y4 = b.w;
 
         if (x2 < x3)
         {
-            return true;
+            return false;
         }
         
         if ((x2 == x3) && (y2 < y3 || y4 < y1))
         {
-            return true;
+            return false;
         }
 
         if (x4 < x1)
         {
-            return true;
+            return false;
         }
 
         if ((x4 == x1) && (y4 < y1 || y2 < y3))
         {
-            return true;
+            return false;
         }
 
-        return false;
+        return true;
     }
 }

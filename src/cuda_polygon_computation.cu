@@ -54,12 +54,12 @@ namespace freeform
             freeform::patch p0 = { x0, x1, x2, x3, y0, y1, y2, y3 };
             freeform::patch p1 = cub_bezier_interpol(p0);
 
-            float min_0 = min4(p1.x0, p1.x1, p1.x2, p1.x3);
-            float min_1 = min4(p1.y0, p1.y1, p1.y2, p1.y3);
-            float max_0 = max4(p1.x0, p1.x1, p1.x2, p1.x3);
-            float max_1 = max4(p1.y0, p1.y1, p1.y2, p1.y3);
+            float min_x = min4(p1.x0, p1.x1, p1.x2, p1.x3);
+            float min_y = min4(p1.y0, p1.y1, p1.y2, p1.y3);
+            float max_x = max4(p1.x0, p1.x1, p1.x2, p1.x3);
+            float max_y = max4(p1.y0, p1.y1, p1.y2, p1.y3);
 
-            float4  tb = math::set(min_0, max_0, min_1, max_1);
+            float4  tb = math::set(min_x, max_x, min_y, max_y);
             tab     t(i, tb);
 
             return thrust::make_tuple( p1, t );
