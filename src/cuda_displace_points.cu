@@ -12,10 +12,6 @@
 #include "math_functions.h"
 
 
-
-
-
-
 namespace freeform
 {
     typedef thrust::device_vector<point> points;

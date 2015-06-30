@@ -47,6 +47,11 @@ namespace freeform
         }
     };
 
+    __device__ inline bool operator== (const tab& a, const tab& b)
+    {
+        return a.m_index == b.m_index && a.m_aabb.x == b.m_aabb.x && a.m_aabb.y == b.m_aabb.y && a.m_aabb.z == b.m_aabb.z && a.m_aabb.w == b.m_aabb.w;
+    }
+
     typedef thrust::device_vector< patch >          patches;
     typedef thrust::device_vector< point >          points;
     typedef thrust::device_vector< tab>             tabs;

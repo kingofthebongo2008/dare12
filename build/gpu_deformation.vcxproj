@@ -31,7 +31,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 6.5.props" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 7.0.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='debug|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -68,10 +68,10 @@
     </Link>
     <CudaCompile>
       <CodeGeneration>compute_30,sm_35</CodeGeneration>
-      <GPUDebugInfo>true</GPUDebugInfo>
+      <GPUDebugInfo>false</GPUDebugInfo>
       <CudaRuntime>Shared</CudaRuntime>
-      <TargetMachinePlatform>64</TargetMachinePlatform>
-      <GenerateLineInfo>true</GenerateLineInfo>
+      <TargetMachinePlatform>32</TargetMachinePlatform>
+      <GenerateLineInfo>false</GenerateLineInfo>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|Win32'">
@@ -103,7 +103,7 @@
       <CodeGeneration>compute_30,sm_35</CodeGeneration>
       <AdditionalCompilerOptions>
       </AdditionalCompilerOptions>
-      <TargetMachinePlatform>64</TargetMachinePlatform>
+      <TargetMachinePlatform>32</TargetMachinePlatform>
       <CudaRuntime>Shared</CudaRuntime>
     </CudaCompile>
   </ItemDefinitionGroup>
@@ -133,7 +133,9 @@
   <ItemGroup>
     <CudaCompile Include="..\src\cuda_canny.cu" />
     <CudaCompile Include="..\src\cuda_displace_points.cu" />
-    <CudaCompile Include="..\src\cuda_flip.cu" />
+    <CudaCompile Include="..\src\cuda_flip.cu">
+      <GPUDebugInfo Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">true</GPUDebugInfo>
+    </CudaCompile>
     <CudaCompile Include="..\src\cuda_grayscale.cu" />
     <CudaCompile Include="..\src\cuda_init_freeform.cu" />
     <CudaCompile Include="..\src\cuda_normal_curve.cu" />
@@ -143,6 +145,6 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 6.5.targets" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 7.0.targets" />
   </ImportGroup>
 </Project>

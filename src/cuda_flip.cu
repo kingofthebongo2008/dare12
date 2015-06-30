@@ -125,16 +125,6 @@ namespace freeform
 
     }
 
-    struct disconnect_patches
-    {
-        /*
-        __device__ thrust::tuple< patch, patch> operator() (const patch& p1, const patch& p2)
-        {
-        }
-        */
-
-    };
-
     struct test_boxes
     {
         thrust::device_ptr< tab > m_tabs;
@@ -156,14 +146,68 @@ namespace freeform
             tab t0 = t[r];
             tab t1 = t[c];
 
-            return intersect_bounding_boxes(t0.m_aabb, t1.m_aabb) ? 1 : 0 ;
+            return intersect_bounding_boxes(t0.m_aabb, t1.m_aabb) ? 1 : 0;
         }
     };
 
-
-
-    patches flip(const patches& p, tabs& t )
+    struct disconnect_patches_kernel
     {
+        thrust::device_ptr< patch >      m_patches;
+        thrust::device_ptr< patch >      m_patches_in;
+        thrust::device_ptr< patch >      m_patches_out;
+
+        thrust::device_ptr<uint32_t>     m_patches_in_element_count;
+        thrust::device_ptr<uint32_t>     m_patches_out_element_count;
+        
+
+        disconnect_patches_kernel
+            ( 
+                thrust::device_ptr< patch >      patches,
+                thrust::device_ptr< patch >      patches_in,
+                thrust::device_ptr< patch >      patches_out,
+        
+                thrust::device_ptr<uint32_t>     patches_in_element_count,
+                thrust::device_ptr<uint32_t>     patches_out_element_count
+            ) :
+                m_patches(patches)
+                , m_patches_in(patches_in)
+                , m_patches_out(patches_out)
+                , m_patches_in_element_count(patches_in_element_count)
+                , m_patches_out_element_count(patches_out_element_count)
+            {
+
+            }
+
+        __device__ void operator() ( thrust::tuple<uint32_t, bool> t )
+        {
+            auto p           = thrust::get<0>(t);
+            auto intersected = thrust::get<1>(t);
+
+            if (intersected)
+            {
+                using namespace upper_triangular;
+
+                //get indices of patches i and j
+                auto i = row(p);
+                auto j = col(p);
+
+                auto pi = m_patches[i];
+                auto pj = m_patches[j];
+
+                auto new_patches = disconnect_patches(pi, pj);
+
+                auto index_in  = atomicAdd(m_patches_in_element_count.get(), 1);
+                auto index_out = atomicAdd(m_patches_out_element_count.get(), 1);
+
+                m_patches_out[index_out] = thrust::get<0>(new_patches);
+                m_patches_in[index_in]   = thrust::get<1>(new_patches);
+            }
+        }
+    };
+
+    patches flip( patches& p, tabs& t )
+    {
+        
         auto triangular_size = ( p.size() * ( p.size() - 1) / 2 ) ;
 
         thrust::device_vector < bool> tests;
@@ -175,6 +219,36 @@ namespace freeform
         thrust::transform(cb, ce, tests.begin(), test_boxes(&t[0]));
 
         thrust::copy(tests.begin(), tests.end(), std::ostream_iterator< bool >(std::cout, " "));
+
+        patches outside;
+        patches inside;
+
+        //reserve space
+        outside.resize( triangular_size );
+        inside.resize(  triangular_size );
+
+        auto zb = thrust::make_zip_iterator(thrust::make_tuple(cb, tests.begin()));
+        auto ze = thrust::make_zip_iterator(thrust::make_tuple(ce, tests.end()));
+
+        thrust::device_vector<uint32_t> element_count_in;
+        thrust::device_vector<uint32_t> element_count_out;
+
+        element_count_in.resize(1);
+        element_count_out.resize(1);
+
+        thrust::for_each(zb, ze, disconnect_patches_kernel(&p[0], &inside[0], &outside[0], &element_count_in[0], &element_count_out[0]));
+
+        auto out_size   = static_cast<uint32_t> (element_count_out[0]);
+        auto in_size    = static_cast<uint32_t> (element_count_in[0]);
+
+        
+        outside.resize(out_size);
+        inside.resize(in_size);
+
+        //thrust::copy(tests.begin(), tests.end(), std::ostream_iterator< bool >(std::cout, " "));
+
+        thrust::copy(outside.begin(), outside.end(), std::ostream_iterator< const patch& >(std::cout, " "));
+        
 
         return p;
     }
