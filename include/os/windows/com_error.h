@@ -43,7 +43,7 @@ namespace os
         {
             if (!result)
             {
-                throw exception(E_FAIL);
+                throw com_exception(E_FAIL);
             }
         }
     }

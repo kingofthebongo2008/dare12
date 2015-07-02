@@ -62,6 +62,8 @@ namespace freeform
     thrust::tuple<patches, tabs >                               polygon_computation(points& n);
     
     patches flip( patches& p, tabs& t);
+
+    void    display( const imaging::cuda_texture& t );
 }
 
 static inline float l2_norm(float x, float y)
@@ -121,8 +123,6 @@ int32_t main( int argc, char const* argv[] )
     imaging::write_texture( gray,       url2.get_path() );
     imaging::write_texture( canny,      url3.get_path() );
 
-
-
     //filter out the records that match the composite criteria
     std::chrono::steady_clock::time_point start1 = std::chrono::steady_clock::now();
 
@@ -154,6 +154,8 @@ int32_t main( int argc, char const* argv[] )
     std::cout << "Filtering on device took: " << std::chrono::duration_cast<std::chrono::milliseconds>(end1 - start1).count() << " ms" << std::endl;
 
     thrust::copy(test.begin(), test.end(), std::ostream_iterator< freeform::tab >(std::cout, " "));
+
+    freeform::display(gray);
    
 
     return 0;
