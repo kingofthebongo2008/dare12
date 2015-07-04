@@ -115,6 +115,7 @@ int32_t main( int argc, char const* argv[] )
     imaging::cuda_texture t( texture.get_width(), texture.get_height(), texture.get_bpp(), texture.get_size(), texture.get_pitch(), texture.get_image_type(), reinterpret_cast<uint8_t*> (memory_buffer->reset() ) );
 
 
+    //do gray scale conversion and edge detection
     auto gray   = freeform::create_grayscale_texture(t);
     auto canny  = freeform::create_canny_texture(gray, 0.05f);
 
@@ -135,21 +136,25 @@ int32_t main( int argc, char const* argv[] )
 
     auto init = freeform::inititialize_free_form( center_image_x, center_image_y, radius, patch_count);
 
+
     auto m    = freeform::test_distances(thrust::get<0>(init), thrust::get<1>(init) );
     auto nor  = freeform::normal_curve(m);
     auto n_s  = displace_points( m, nor, canny );
-    auto n    = polygon_computation(thrust::get<0>(n_s));
 
+    auto n    = polygon_computation(thrust::get<0>(n_s));
     thrust::sort(thrust::get<1>(n).begin(), thrust::get<1>(n).end(), lexicographical_sorter());
 
+    
     auto flipped = flip(thrust::get<0>(n), thrust::get<1>(n));
 
-   
+
+
+    //output results
     thrust::host_vector<freeform::tab > test;
     test.resize(thrust::get<1>(n).size());
 
     thrust::copy(thrust::get<1>(n).begin(), thrust::get<1>(n).end(), test.begin() );
-    
+
     std::chrono::steady_clock::time_point end1 = std::chrono::steady_clock::now();
     std::cout << "Filtering on device took: " << std::chrono::duration_cast<std::chrono::milliseconds>(end1 - start1).count() << " ms" << std::endl;
 

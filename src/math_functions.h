@@ -1,6 +1,6 @@
 #pragma once
 
-#include "math_vector.h"
+#include <math/math_vector.h>
 
 namespace math
 {
@@ -21,9 +21,9 @@ namespace math
 
     __device__ inline float decaste_casteljau(float4 points, float t)
     {
-        auto b0_0 = lerp(points.y, points.x, t);
-        auto b0_1 = lerp(points.z, points.y, t);
-        auto b0_2 = lerp(points.w, points.z, t);
+        auto b0_0 = lerp( math::get_y(points), math::get_x(points), t);
+        auto b0_1 = lerp( math::get_z(points), math::get_y(points), t);
+        auto b0_2 = lerp( math::get_w(points), math::get_z(points), t);
 
         auto b1_0 = lerp(b0_1, b0_0, t);
         auto b1_1 = lerp(b0_2, b0_1, t);

@@ -8,3 +8,4 @@ media/essaisynth1.png
 *.deps
 media/essaisynth2_grayscale.png
 media/essaisynth2_canny.png
+*.cso

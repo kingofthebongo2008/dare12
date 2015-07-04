@@ -4,8 +4,8 @@
 
 #include <sstream>
 
-#include "math_vector.h"
-#include "math_matrix.h"
+#include <math/math_vector.h>
+#include <math/math_matrix.h>
 #include "math_functions.h"
 
 namespace freeform
@@ -30,6 +30,7 @@ namespace freeform
         float y;
     };
 
+#if defined( __CUDACC__ )
     struct tab
     {
         uint32_t        m_index;
@@ -80,18 +81,18 @@ namespace freeform
     {
         using namespace math;
 
-        float4  v0 = math::identity_r0();
-        float4  v1 = set(-5.0f / 6.0f, 3.0f, -3.0f / 2.0f, 1.0f / 3.0f);
-        float4  v2 = swizzle<w, z, y, x>(v1);
-        float4  v3 = math::identity_r3();
+        math::float4  v0 = math::identity_r0();
+        math::float4  v1 = set(-5.0f / 6.0f, 3.0f, -3.0f / 2.0f, 1.0f / 3.0f);
+        math::float4  v2 = swizzle<w, z, y, x>(v1);
+        math::float4  v3 = math::identity_r3();
 
-        float4x4 m = set(v0, v1, v2, v3);
+        float4x4 m = math::set(v0, v1, v2, v3);
 
-        float4  p0_x = set(p.x0, p.x1, p.x2, p.x3);
-        float4  p0_y = set(p.y0, p.y1, p.y2, p.y3);
+        math::float4  p0_x = set(p.x0, p.x1, p.x2, p.x3);
+        math::float4  p0_y = set(p.y0, p.y1, p.y2, p.y3);
 
-        float4  x = mul(m, p0_x);
-        float4  y = mul(m, p0_y);
+        math::float4  x = mul(m, p0_x);
+        math::float4  y = mul(m, p0_y);
 
         patch   r = {
             math::get_x(x), math::get_y(x), math::get_z(x), math::get_w(x),
@@ -118,8 +119,8 @@ namespace freeform
         }
         else
         {
-            float4  x4 = math::set(p.x0, p.x1, p.x2, p.x3);
-            float4  y4 = math::set(p.y0, p.y1, p.y2, p.y3);
+            math::float4  x4 = math::set(p.x0, p.x1, p.x2, p.x3);
+            math::float4  y4 = math::set(p.y0, p.y1, p.y2, p.y3);
 
             auto x = math::decaste_casteljau(x4, n * t - k);
             auto y = math::decaste_casteljau(y4, n * t - k);
@@ -162,17 +163,17 @@ namespace freeform
     {
         //a and b contain: min_x, max_x, min_y, max_y for an aabb
 
-        float x1 = a.x;
-        float y1 = a.z;
+        float x1 = math::get_x(a);
+        float y1 = math::get_z(a);
 
-        float x2 = a.y;
-        float y2 = a.w;
+        float x2 = math::get_y(a);
+        float y2 = math::get_w(a);
 
-        float x3 = b.x;
-        float y3 = b.z;
+        float x3 = math::get_x(b);
+        float y3 = math::get_z(b);
 
-        float x4 = b.y;
-        float y4 = b.w;
+        float x4 = math::get_y(b);
+        float y4 = math::get_w(b);
 
         if (x2 < x3)
         {
@@ -196,4 +197,6 @@ namespace freeform
 
         return true;
     }
+#endif
+
 }

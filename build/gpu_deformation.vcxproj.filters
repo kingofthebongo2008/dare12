@@ -9,6 +9,15 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="source Files\shaders">
+      <UniqueIdentifier>{094f352c-ce2e-47ce-b40f-e51c77d96d8e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header files\include">
+      <UniqueIdentifier>{9d519fcb-41fa-4d41-bb5e-f873383c219b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header files\include\math">
+      <UniqueIdentifier>{fec0509c-28e0-497f-a4f0-063738bbc407}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\precompiled.cpp">
@@ -16,6 +25,12 @@
     </ClCompile>
     <ClCompile Include="..\src\rendering_application.cpp">
       <Filter>source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\math\math_functions.cpp">
+      <Filter>header files\include\math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\math\math_half.cpp">
+      <Filter>header files\include\math</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -55,12 +70,6 @@
     <ClInclude Include="..\src\freeform_patch.h">
       <Filter>header files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\math_vector.h">
-      <Filter>header files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\math_matrix.h">
-      <Filter>header files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\math_functions.h">
       <Filter>header files</Filter>
     </ClInclude>
@@ -69,6 +78,39 @@
     </ClInclude>
     <ClInclude Include="..\src\rendering_application.h">
       <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_functions.h">
+      <Filter>header files\include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_geometry.h">
+      <Filter>header files\include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_graphics.h">
+      <Filter>header files\include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_half.h">
+      <Filter>header files\include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_matrix.h">
+      <Filter>header files\include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_matrix_cuda.h">
+      <Filter>header files\include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_matrix_host.h">
+      <Filter>header files\include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_quaternion.h">
+      <Filter>header files\include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_vector.h">
+      <Filter>header files\include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_vector_cuda.h">
+      <Filter>header files\include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_vector_host.h">
+      <Filter>header files\include\math</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -106,5 +148,8 @@
   <ItemGroup>
     <FxCompile Include="..\include\gx\shaders\gx_shader_copy_texture_ps.hlsl" />
     <FxCompile Include="..\include\gx\shaders\gx_shader_full_screen_vs.hlsl" />
+    <FxCompile Include="..\src\shaders\freeform_shader_bezier_hs.hlsl">
+      <Filter>source Files\shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
