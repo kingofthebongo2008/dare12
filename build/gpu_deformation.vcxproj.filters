@@ -14,6 +14,9 @@
     <ClCompile Include="..\src\precompiled.cpp">
       <Filter>source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\rendering_application.cpp">
+      <Filter>source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\precompiled.h">
@@ -61,6 +64,12 @@
     <ClInclude Include="..\src\math_functions.h">
       <Filter>header files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\rendering.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\rendering_application.h">
+      <Filter>header files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="readMe.txt" />
@@ -93,5 +102,9 @@
     <CudaCompile Include="..\src\cuda_flip.cu">
       <Filter>source Files</Filter>
     </CudaCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\include\gx\shaders\gx_shader_copy_texture_ps.hlsl" />
+    <FxCompile Include="..\include\gx\shaders\gx_shader_full_screen_vs.hlsl" />
   </ItemGroup>
 </Project>
