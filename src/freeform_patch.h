@@ -86,7 +86,7 @@ namespace freeform
         math::float4  v2 = swizzle<w, z, y, x>(v1);
         math::float4  v3 = math::identity_r3();
 
-        float4x4 m = math::set(v0, v1, v2, v3);
+        math::float4x4 m = math::set(v0, v1, v2, v3);
 
         math::float4  p0_x = set(p.x0, p.x1, p.x2, p.x3);
         math::float4  p0_y = set(p.y0, p.y1, p.y2, p.y3);

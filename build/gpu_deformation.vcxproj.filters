@@ -18,6 +18,9 @@
     <Filter Include="header files\include\math">
       <UniqueIdentifier>{fec0509c-28e0-497f-a4f0-063738bbc407}</UniqueIdentifier>
     </Filter>
+    <Filter Include="header files\include\d3d11">
+      <UniqueIdentifier>{0cec5289-6ccf-4c93-83a0-96fd7a060b4e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\precompiled.cpp">
@@ -112,6 +115,39 @@
     <ClInclude Include="..\include\math\math_vector_host.h">
       <Filter>header files\include\math</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\shaders\freeform_shader_bezier_ps.h">
+      <Filter>source Files\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\shaders\freeform_shader_bezier_ds.h">
+      <Filter>source Files\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\shaders\freeform_shader_bezier_hs.h">
+      <Filter>source Files\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\shaders\freeform_shader_bezier_vs.h">
+      <Filter>source Files\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\shaders\freeform_shaders_struct.h">
+      <Filter>source Files\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d3d11\d3d11_error.h">
+      <Filter>header files\include\d3d11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d3d11\d3d11_exception.h">
+      <Filter>header files\include\d3d11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d3d11\d3d11_helpers.h">
+      <Filter>header files\include\d3d11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d3d11\d3d11_pointers.h">
+      <Filter>header files\include\d3d11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d3d11\d3d11_system.h">
+      <Filter>header files\include\d3d11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d3d11\dxgi_helpers.h">
+      <Filter>header files\include\d3d11</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="readMe.txt" />
@@ -146,10 +182,21 @@
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="..\include\gx\shaders\gx_shader_copy_texture_ps.hlsl" />
     <FxCompile Include="..\include\gx\shaders\gx_shader_full_screen_vs.hlsl" />
     <FxCompile Include="..\src\shaders\freeform_shader_bezier_hs.hlsl">
       <Filter>source Files\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\src\shaders\freeform_shader_bezier_vs.hlsl">
+      <Filter>source Files\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\src\shaders\freeform_shader_bezier_ds.hlsl">
+      <Filter>source Files\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\src\shaders\freeform_shader_bezier_ps.hlsl">
+      <Filter>source Files\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\include\gx\shaders\gx_shader_copy_texture_ps.hlsl">
+      <Filter>source Files</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

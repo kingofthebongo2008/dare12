@@ -206,6 +206,24 @@ namespace d3d11
         }
     };
 
+    class create_hull_shader : public create_resource_exception
+    {
+    public:
+        create_hull_shader(const HRESULT hr) : create_resource_exception(hr)
+        {
+
+        }
+    };
+
+    class create_domain_shader : public create_resource_exception
+    {
+    public:
+        create_domain_shader(const HRESULT hr) : create_resource_exception(hr)
+        {
+
+        }
+    };
+
     class create_geometry_shader : public create_resource_exception
     {
         public:

@@ -6,6 +6,8 @@
 #include "freeform_patch.h"
 
 
+
+
 namespace freeform
 {
     void display(const imaging::cuda_texture& t )
