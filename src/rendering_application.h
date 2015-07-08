@@ -220,6 +220,7 @@ namespace freeform
             };
 
             device_context->VSSetConstantBuffers(0, 1, cbuffers);
+            device_context->DSSetConstantBuffers(0, 1, cbuffers);
 
             device_context->Draw( m_control_points_count * 4 , 0);
            

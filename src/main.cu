@@ -169,10 +169,10 @@ int32_t main( int argc, char const* argv[] )
     //display_patches.resize(flipped.size());
     //thrust::copy(flipped.begin(), flipped.end(), display_patches.begin() );
 
-    //display_patches.resize(thrust::get<1>(init).size() );
-    //thrust::copy(thrust::get<1>(init).begin(), thrust::get<1>(init).end(), display_patches.begin() );
+    display_patches.resize(thrust::get<1>(init).size() );
+    thrust::copy(thrust::get<1>(init).begin(), thrust::get<1>(init).end(), display_patches.begin() );
     
-    
+    /*
     
     display_patches.resize(2);
     freeform::patch p0;
@@ -194,8 +194,8 @@ int32_t main( int argc, char const* argv[] )
     auto w = gray.get_width();
     auto h = gray.get_height();
     p0.x0 = 0.0;
-    p0.x1 = w / 2;
-    p0.x2 = w / 2;
+    p0.x1 = 0.0f;// w / 2;
+    p0.x2 = w;// w / 2;
     p0.x3 = w;
 
     p0.y0 = 0;
@@ -204,7 +204,7 @@ int32_t main( int argc, char const* argv[] )
     p0.y3 = 0;
 
     display_patches[0] = p0;
-
+    */
     /*
     p0.x0 = 0;
     p0.x1 = 4.0f * w;
@@ -215,9 +215,9 @@ int32_t main( int argc, char const* argv[] )
     p0.y1 = -1.0f * h;
     p0.y2 = 1.0f * h;
     p0.y3 = 1.0f * h;
-    */
+    
     display_patches[1] = p0;
-
+    */
     
 
     freeform::graphic::transform_info transform;
