@@ -13,6 +13,7 @@
 #include <gx/gx_view_port.h>
 
 #include <gx/shaders/gx_shader_copy_texture.h>
+#include <gx/gx_constant_buffer_helper.h>
 
 #include <sys/sys_profile_timer.h>
 
@@ -22,6 +23,8 @@
 #include "shaders/freeform_shader_bezier_hs.h"
 #include "shaders/freeform_shader_bezier_ds.h"
 #include "shaders/freeform_shader_bezier_ps.h"
+
+#include "graphic_types.h"
 
 
 
@@ -58,7 +61,7 @@ namespace freeform
 
     public:
 
-        sample_application(const wchar_t* window_title, const imaging::cuda_texture& t) : base(window_title)
+        sample_application(const wchar_t* window_title, const imaging::cuda_texture& t, const graphic::patch_draw_info& gdi, const graphic::transform_info& transform_info) : base(window_title)
             , m_d2d_factory(d2d::create_d2d_factory_single_threaded())
             , m_dwrite_factory(dwrite::create_dwrite_factory())
             , m_text_format(dwrite::create_text_format(m_dwrite_factory))
@@ -74,6 +77,8 @@ namespace freeform
             , m_elapsed_update_time(0.0)
             , m_texture(create_texture( m_context.m_device, t ))
             , m_texture_view( d3d11::create_shader_resource_view( m_context.m_device, m_texture) )
+            , m_transform_info( transform_info )
+            , m_transform_buffer(d3d11::create_constant_buffer( m_context.m_device, sizeof(graphic::transform_info)))
         {
 
             auto r0 = create_shader_samples_vs_async( m_context.m_device );
@@ -81,8 +86,6 @@ namespace freeform
             auto r2 = create_shader_samples_ds_async(m_context.m_device);
             auto r3 = create_shader_samples_ps_async(m_context.m_device);
 
-
-            
 
             r0.wait();
             r1.wait();
@@ -99,13 +102,20 @@ namespace freeform
             //draw the control points
             float constrol_points[] =
             {
-                -1.0f,  -0.8f,
+                -1.0f,  -1.0f,
                 4.0f,   -1.0f,
                 -4.0f,  1.0f,
-                1.0f,   0.8f
+                1.0f,   1.0f,
+
+                -2.0f, -0.8f,
+                4.0f, -1.0f,
+                -4.0f, 1.0f,
+                2.0f, 0.8f
             };
 
-            m_control_points_buffer = d3d11::create_default_vertex_buffer(m_context.m_device.get(), &constrol_points[0], sizeof(constrol_points) );
+            m_control_points_buffer = d3d11::create_default_vertex_buffer(m_context.m_device.get(), gdi.get_patches(), graphic::get_patch_size(gdi));
+            m_control_points_count = gdi.get_count();
+            gx::constant_buffer_update(m_context.m_immediate_context, m_transform_buffer, m_transform_info);
         }
 
     protected:
@@ -147,7 +157,6 @@ namespace freeform
             //get immediate context to submit commands to the gpu
             auto device_context = m_context.m_immediate_context.get();
 
-
             device_context->VSSetShader(nullptr, nullptr, 0);
             device_context->PSSetShader(nullptr, nullptr, 0);
             device_context->HSSetShader(nullptr, nullptr, 0);
@@ -157,12 +166,8 @@ namespace freeform
             //set render target as the back buffer, goes to the operating system
             d3d11::om_set_render_target(device_context, m_back_buffer_render_target);
 
-
-
-
             on_render_scene();
 
-            
             //set a view port for rendering
             D3D11_VIEWPORT v = m_view_port;
             device_context->RSSetViewports(1, &v);
@@ -209,14 +214,15 @@ namespace freeform
             device_context->GSSetShader(nullptr, nullptr, 0);
 
 
-            DXGI_ADAPTER_DESC d = {};
+            ID3D11Buffer* cbuffers[] =
+            {
+                m_transform_buffer.get()
+            };
 
-            auto result = m_context.m_adapter->GetDesc(&d);
+            device_context->VSSetConstantBuffers(0, 1, cbuffers);
 
-
-            device_context->Draw(4, 0);
-
-            
+            device_context->Draw( m_control_points_count * 4 , 0);
+           
         }
 
         void on_resize(uint32_t width, uint32_t height)
@@ -283,7 +289,10 @@ namespace freeform
         d3d11::idomainshader_ptr                m_bezier_ds;
         d3d11::ipixelshader_ptr                 m_bezier_ps;
         d3d11::ibuffer_ptr                      m_control_points_buffer;
+        size_t                                  m_control_points_count;
+        d3d11::ibuffer_ptr                      m_transform_buffer;
 
+        graphic::transform_info                 m_transform_info;
         shader_bezier_layout                    m_bezier_ia_layout;
     };
 }

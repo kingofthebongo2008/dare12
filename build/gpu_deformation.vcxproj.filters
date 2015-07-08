@@ -148,6 +148,9 @@
     <ClInclude Include="..\include\d3d11\dxgi_helpers.h">
       <Filter>header files\include\d3d11</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\graphic_types.h">
+      <Filter>header files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="readMe.txt" />

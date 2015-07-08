@@ -18,6 +18,7 @@
 #include "cuda_memory_helper.h"
 #include "imaging_utils.h"
 #include "freeform_patch.h"
+#include "graphic_types.h"
 
 
 #include <fs/fs_media.h>
@@ -63,7 +64,7 @@ namespace freeform
     
     patches flip( patches& p, tabs& t);
 
-    void    display( const imaging::cuda_texture& t );
+    void    display(const imaging::cuda_texture& t, const thrust::host_vector< patch>& p, const graphic::transform_info& transform);
 }
 
 static inline float l2_norm(float x, float y)
@@ -160,8 +161,75 @@ int32_t main( int argc, char const* argv[] )
 
     thrust::copy(test.begin(), test.end(), std::ostream_iterator< freeform::tab >(std::cout, " "));
 
-    freeform::display(gray);
-   
+
+
+    //copy for rendering
+    thrust::host_vector< freeform::patch > display_patches;
+
+    //display_patches.resize(flipped.size());
+    //thrust::copy(flipped.begin(), flipped.end(), display_patches.begin() );
+
+    //display_patches.resize(thrust::get<1>(init).size() );
+    //thrust::copy(thrust::get<1>(init).begin(), thrust::get<1>(init).end(), display_patches.begin() );
+    
+    
+    
+    display_patches.resize(2);
+    freeform::patch p0;
+
+    //draw the control points
+    float constrol_points[] =
+    {
+        -1.0f, -1.0f,
+        4.0f, -1.0f,
+        -4.0f, 1.0f,
+        1.0f, 1.0f,
+
+        -2.0f, -0.8f,
+        4.0f, -1.0f,
+        -4.0f, 1.0f,
+        2.0f, 0.8f
+    };
+
+    auto w = gray.get_width();
+    auto h = gray.get_height();
+    p0.x0 = 0.0;
+    p0.x1 = w / 2;
+    p0.x2 = w / 2;
+    p0.x3 = w;
+
+    p0.y0 = 0;
+    p0.y1 = h;// / 2;
+    p0.y2 = h;// / 2;
+    p0.y3 = 0;
+
+    display_patches[0] = p0;
+
+    /*
+    p0.x0 = 0;
+    p0.x1 = 4.0f * w;
+    p0.x2 = -4.0f * w;
+    p0.x3 = 2.0f * w;
+
+    p0.y0 = -1.0f * h;
+    p0.y1 = -1.0f * h;
+    p0.y2 = 1.0f * h;
+    p0.y3 = 1.0f * h;
+    */
+    display_patches[1] = p0;
+
+    
+
+    freeform::graphic::transform_info transform;
+
+    transform.m_center_x     = gray.get_width();
+    transform.m_center_y     = gray.get_height();
+    transform.m_image_height = gray.get_height();
+    transform.m_image_width  = gray.get_width();
+
+    
+
+    freeform::display(gray, display_patches, transform );
 
     return 0;
 
