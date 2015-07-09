@@ -120,7 +120,6 @@ int32_t main( int argc, char const* argv[] )
     auto gray   = freeform::create_grayscale_texture(t);
     auto canny  = freeform::create_canny_texture(gray, 0.05f);
 
-
     imaging::write_texture( texture,    url1.get_path() );
     imaging::write_texture( gray,       url2.get_path() );
     imaging::write_texture( canny,      url3.get_path() );

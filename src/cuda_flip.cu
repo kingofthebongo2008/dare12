@@ -60,6 +60,11 @@ namespace freeform
 
     struct sort_by_abscissa_asc
     {
+        __device__ __host__ sort_by_abscissa_asc()
+        {
+
+        }
+
         __device__ __host__ bool operator()( const point& a, const point& b ) const
         {
             return a.x < b.x;
@@ -68,6 +73,11 @@ namespace freeform
 
     struct sort_by_ordinate_asc
     {
+        __device__ __host__ sort_by_ordinate_asc()
+        {
+
+        }
+
         __device__ __host__ bool operator()( const point& a, const point& b ) const
         {
             return a.y < b.y;
@@ -78,7 +88,6 @@ namespace freeform
     {
         point pt[8];
         
-        
         pt[0] = { p0.x0, p0.y0 };
         pt[1] = { p0.x1, p0.y1 };
         pt[2] = { p0.x2, p0.y2 };
@@ -88,10 +97,8 @@ namespace freeform
         pt[5] = { p1.x1, p1.y1 };
         pt[6] = { p1.x2, p1.y2 };
         pt[7] = { p1.x3, p1.y3 };
-        
 
         thrust::sort(&pt[0], &pt[0] + 8, sort_by_abscissa_asc());
-
         thrust::sort(&pt[0], &pt[0] + 4, sort_by_ordinate_asc());
         thrust::sort(&pt[0] + 4, &pt[0] + 8, sort_by_ordinate_asc());
 
