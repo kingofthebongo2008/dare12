@@ -21,6 +21,18 @@
     <Filter Include="header files\include\d3d11">
       <UniqueIdentifier>{0cec5289-6ccf-4c93-83a0-96fd7a060b4e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="header files\include\io">
+      <UniqueIdentifier>{7391cfaa-f355-4a5a-a584-76c115542592}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header files\include\gx">
+      <UniqueIdentifier>{352373c8-585a-4b9f-a918-92fd96d929a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header files\include\os">
+      <UniqueIdentifier>{778cbeee-0ca1-4cea-a445-3f939052cf8e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header files\include\os\windows">
+      <UniqueIdentifier>{ae2ebb47-46cc-4623-b7d2-747f410e2afa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\precompiled.cpp">
@@ -150,6 +162,69 @@
     </ClInclude>
     <ClInclude Include="..\src\graphic_types.h">
       <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\io\io_keyboard.h">
+      <Filter>header files\include\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\io\io_mouse.h">
+      <Filter>header files\include\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_application.h">
+      <Filter>header files\include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_color.h">
+      <Filter>header files\include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_compute_resource.h">
+      <Filter>header files\include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_constant_buffer_helper.h">
+      <Filter>header files\include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_cursor.h">
+      <Filter>header files\include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_default_application.h">
+      <Filter>header files\include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_geometry_helpers.h">
+      <Filter>header files\include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_geometry_pass_common.h">
+      <Filter>header files\include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_pinhole_camera.h">
+      <Filter>header files\include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_render_functions.h">
+      <Filter>header files\include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_render_resource.h">
+      <Filter>header files\include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_view.h">
+      <Filter>header files\include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_view_port.h">
+      <Filter>header files\include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\os\windows\com_error.h">
+      <Filter>header files\include\os\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\os\windows\com_initializer.h">
+      <Filter>header files\include\os\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\os\windows\com_pointers.h">
+      <Filter>header files\include\os\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\os\windows\com_ptr.h">
+      <Filter>header files\include\os\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\os\windows\dxgi_pointers.h">
+      <Filter>header files\include\os\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\os\windows\wnd_application.h">
+      <Filter>header files\include\os\windows</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -54,7 +54,7 @@ namespace freeform
     imaging::cuda_texture create_canny_texture(const imaging::cuda_texture& texture_color, float threshold);
 
 
-    thrust::tuple< patches, patches, tabs > inititialize_free_form(uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count);
+    thrust::tuple< patches, patches > inititialize_free_form(uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count);
 
     patches test_distances(const patches& p, const patches& p_n);
     patches normal_curve(const patches& n);
@@ -62,7 +62,7 @@ namespace freeform
     thrust::tuple<points, thrust::device_vector<uint8_t> >      displace_points(const patches& m, const patches& nor, const imaging::cuda_texture& grad);
     thrust::tuple<patches, tabs >                               polygon_computation(points& n);
     
-    patches flip( patches& p, tabs& t);
+    thrust::tuple<patches, patches> flip( patches& p, tabs& t);
 
     void    display(const imaging::cuda_texture& t, const thrust::host_vector< patch>& p, const graphic::transform_info& transform);
     void    display(const imaging::cuda_texture& t, const thrust::device_vector< patch>& p);
@@ -137,32 +137,44 @@ int32_t main( int argc, char const* argv[] )
 
     auto init = freeform::inititialize_free_form( center_image_x, center_image_y, radius, patch_count);
 
+    auto ff     = init;
 
-    auto m    = freeform::test_distances(thrust::get<0>(init), thrust::get<1>(init) );
-    auto nor  = freeform::normal_curve(m);
-    auto n_s  = displace_points( m, nor, canny );
+    for (auto i = 0; i < 5; ++i )
+    {
+        auto m    = freeform::test_distances(thrust::get<0>(init), thrust::get<1>(init) );
+        auto nor  = freeform::normal_curve(m);
+        auto n_s  = displace_points( m, nor, canny );
 
-    auto n    = polygon_computation(thrust::get<0>(n_s));
-    thrust::sort(thrust::get<1>(n).begin(), thrust::get<1>(n).end(), lexicographical_sorter());
+        auto n    = polygon_computation(thrust::get<0>(n_s));
+        thrust::sort(thrust::get<1>(n).begin(), thrust::get<1>(n).end(), lexicographical_sorter());
+
+        auto flipped = flip(thrust::get<0>(n), thrust::get<1>(n));
+
+        freeform::display(  gray, thrust::get<0>(flipped) );
+        //freeform::display(gray, thrust::get<1>(flipped));
+
+        init = flipped;
+
+        
+    }
+
+
 
     
-    auto flipped = flip(thrust::get<0>(n), thrust::get<1>(n));
-
-
-    //output results
-    thrust::host_vector<freeform::tab > test;
-    test.resize(thrust::get<1>(n).size());
-
-    thrust::copy(thrust::get<1>(n).begin(), thrust::get<1>(n).end(), test.begin() );
-
-    std::chrono::steady_clock::time_point end1 = std::chrono::steady_clock::now();
-    std::cout << "Filtering on device took: " << std::chrono::duration_cast<std::chrono::milliseconds>(end1 - start1).count() << " ms" << std::endl;
-
-    thrust::copy(test.begin(), test.end(), std::ostream_iterator< freeform::tab >(std::cout, " "));
-
-
-
-    freeform::display(gray, thrust::get<1>(init));
     return 0;
 
 }
+
+
+/*
+//output results
+thrust::host_vector<freeform::tab > test;
+test.resize(thrust::get<1>(n).size());
+
+thrust::copy(thrust::get<1>(n).begin(), thrust::get<1>(n).end(), test.begin() );
+
+std::chrono::steady_clock::time_point end1 = std::chrono::steady_clock::now();
+std::cout << "Filtering on device took: " << std::chrono::duration_cast<std::chrono::milliseconds>(end1 - start1).count() << " ms" << std::endl;
+
+thrust::copy(test.begin(), test.end(), std::ostream_iterator< freeform::tab >(std::cout, " "));
+*/

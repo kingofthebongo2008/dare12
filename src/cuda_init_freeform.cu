@@ -70,7 +70,7 @@ namespace freeform
         }
     };
 
-    thrust::tuple< patches, patches, tabs > inititialize_free_form(uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count)
+    thrust::tuple< patches, patches  > inititialize_free_form(uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count)
     {
         thrust::device_vector<float> x;
         thrust::device_vector<float> y;
@@ -98,7 +98,7 @@ namespace freeform
         thrust::transform(begin, end, o, generate_patch(static_cast<float> (center_image_x), static_cast<float> (center_image_y), radius, pas_pt_patch));
 
 
-        return std::move(thrust::make_tuple(std::move(n), std::move(np), std::move(tabs)));
+        return std::move(thrust::make_tuple(std::move(n), std::move(np) )); //, std::move(tabs)));
     }
 }
 

@@ -63,6 +63,11 @@ namespace os
                 return m_hwnd;
             }
 
+            HINSTANCE get_instance() const
+            {
+                return m_instance;
+            }
+
             protected:
             virtual void on_update() = 0;
             virtual void on_render() = 0;
@@ -102,13 +107,19 @@ namespace os
             }
         };
 
+        inline wchar_t* get_window_class_name()
+        {
+            static wchar_t* window_name = L"WndApplication";
+            return window_name;
+        }
+
         inline HWND create_window( uint32_t width, uint32_t height, HINSTANCE instance, const wchar_t* window_name )
         {
             RECT r = { 0, 0, width, height };
 
             throw_if_failed<win32_exception> ( ::AdjustWindowRect(&r, WS_OVERLAPPEDWINDOW, false) );
 
-            return CreateWindow( L"WindowClassCustom", window_name, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, r.right - r.left, r.bottom - r.top, 0, 0, instance, nullptr);
+            return CreateWindow( get_window_class_name() , window_name, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, r.right - r.left, r.bottom - r.top, 0, 0, instance, nullptr);
         }
 
         inline HWND create_window( HINSTANCE instance, const wchar_t* window_name )
@@ -131,22 +142,34 @@ namespace os
             wcex.hCursor        = LoadCursor( NULL, IDC_ARROW );
             wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
             wcex.lpszMenuName   = nullptr;
-            wcex.lpszClassName  = L"WindowClassCustom";
+            wcex.lpszClassName  = get_window_class_name();
             wcex.hIconSm		= LoadIcon(instance, MAKEINTRESOURCE(IDI_APPLICATION));
 
-                return RegisterClassEx(&wcex);
+            return RegisterClassEx(&wcex);
+        }
+
+        inline void destroy_window_class(HINSTANCE instance)
+        {
+            UnregisterClass( get_window_class_name(), instance);
         }
 
         static inline LRESULT CALLBACK DefaultWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
         class windowed_applicaion : public application
         {
-            public:
+        public:
 
-            windowed_applicaion ( HINSTANCE instance, const wchar_t* window_name ) : application (  create_window( instance, window_name ), instance )
+            windowed_applicaion( HINSTANCE instance, const wchar_t* window_name) : application(create_window(instance, window_name), instance)
             {
 
             }
+
+            ~windowed_applicaion()
+            {
+                destroy_window_class( get_instance() );
+            }
+            
+
             void resize(uint32_t width, uint32_t height)
             {
                 on_resize( width, height );
@@ -194,6 +217,7 @@ namespace os
             virtual void on_activate(){}
             virtual void on_deactivate() {}
 
+            private:
         };
 
         static inline LRESULT CALLBACK DefaultWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)

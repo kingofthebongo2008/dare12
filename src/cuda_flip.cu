@@ -212,9 +212,17 @@ namespace freeform
         }
     };
 
-    patches flip( patches& p, tabs& t )
+
+    struct cub_bezier_interpol_kernel
     {
-        
+        __device__ patch operator() (const patch& p) const
+        {
+            return cub_bezier_interpol(p);
+        }
+    };
+
+    thrust::tuple< patches, patches > flip(patches& p, tabs& t)
+    {
         auto triangular_size = ( p.size() * ( p.size() - 1) / 2 ) ;
 
         thrust::device_vector < bool> tests;
@@ -253,11 +261,15 @@ namespace freeform
         inside.resize(in_size);
 
         //thrust::copy(tests.begin(), tests.end(), std::ostream_iterator< bool >(std::cout, " "));
+        //thrust::copy(outside.begin(), outside.end(), std::ostream_iterator< const patch& >(std::cout, " "));
 
-        thrust::copy(outside.begin(), outside.end(), std::ostream_iterator< const patch& >(std::cout, " "));
-        
+        patches displaced;
+        displaced.resize(p.size());
 
-        return p;
+        thrust::transform(p.begin(), p.end(), displaced.begin(), cub_bezier_interpol_kernel());
+
+
+        return thrust::make_tuple( p, displaced );
     }
 }
 
