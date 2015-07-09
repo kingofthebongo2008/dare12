@@ -153,6 +153,7 @@ namespace freeform
             else
             {
                 thrust::get<2>(t) = nor;
+                thrust::get<3>(t) = 0;
             }
         }
     };

@@ -167,9 +167,11 @@
     <ClInclude Include="..\src\imaging_utils_cpu.h" />
     <ClInclude Include="..\src\imaging_utils_cuda.h" />
     <ClInclude Include="..\src\math_functions.h" />
+    <ClInclude Include="..\src\patch_rendering_application.h" />
     <ClInclude Include="..\src\precompiled.h" />
     <ClInclude Include="..\src\rendering.h" />
     <ClInclude Include="..\src\rendering_application.h" />
+    <ClInclude Include="..\src\sample_rendering_application.h" />
     <ClInclude Include="..\src\shaders\freeform_shaders_struct.h" />
     <ClInclude Include="..\src\shaders\freeform_shader_bezier_ds.h" />
     <ClInclude Include="..\src\shaders\freeform_shader_bezier_hs.h" />
@@ -179,15 +181,8 @@
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="..\src\cuda_canny.cu" />
-    <CudaCompile Include="..\src\cuda_displace_points.cu" />
-    <CudaCompile Include="..\src\cuda_flip.cu">
-      <GPUDebugInfo Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">true</GPUDebugInfo>
-    </CudaCompile>
     <CudaCompile Include="..\src\cuda_grayscale.cu" />
     <CudaCompile Include="..\src\cuda_init_freeform.cu" />
-    <CudaCompile Include="..\src\cuda_normal_curve.cu" />
-    <CudaCompile Include="..\src\cuda_polygon_computation.cu" />
-    <CudaCompile Include="..\src\cuda_test_distances.cu" />
     <CudaCompile Include="..\src\main.cu" />
   </ItemGroup>
   <ItemGroup>

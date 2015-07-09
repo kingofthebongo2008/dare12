@@ -51,8 +51,10 @@ namespace freeform
             float y2 = n2.y;
             float y3 = n3.y;
 
-            freeform::patch p0 = { x0, x1, x2, x3, y0, y1, y2, y3 };
-            freeform::patch p1 = cub_bezier_interpol(p0);
+            freeform::patch_sample p0 = { x0, x1, x2, x3, y0, y1, y2, y3 };
+            
+            //obain patch control points from sample points
+            auto p1     = interpolate_curve(p0);
 
             float min_x = min4(p1.x0, p1.x1, p1.x2, p1.x3);
             float min_y = min4(p1.y0, p1.y1, p1.y2, p1.y3);

@@ -33,18 +33,16 @@ namespace freeform
 
         }
 
-        __device__ void operator() ( const thrust::tuple<patch, patch> & t ) const
+        //split procedure
+        __device__ void operator() ( const patch & p ) const
         {
-            auto p = thrust::get<0>(t);
-            auto pn = thrust::get<1>(t);
-
             auto d_0 = math::distance(p.x0, p.y0, p.x1, p.y1);
             auto d_1 = math::distance(p.x1, p.y1, p.x2, p.y2);
             auto d_2 = math::distance(p.x2, p.y2, p.x3, p.y3);
 
             auto m = fmax(fmax(d_0, d_1), d_2);
 
-            if ( m > m_seuil )
+            if ( m > m_seuil && false )
             {
                 float4 g1u = math::set(0.0f, 1.0f / 6.0f, 2.0f / 6.0f, 3.0f / 6.0f);
                 float4 g2u = math::set(3.0f / 6.0f, 4.0f / 6.0f, 5.0f / 6.0f, 6.0f / 6.0f);
@@ -52,24 +50,26 @@ namespace freeform
                 auto   g1  = multi_eval_patch(p, g1u);
                 auto   g2  = multi_eval_patch(p, g2u);
 
+                auto   g4 = interpolate_curve(g1);
+                auto   g5 = interpolate_curve(g2);
+
                 auto old = atomicAdd(m_element_count.get(), 2);
 
-                m_patches[old] = g1;
-                m_patches[old + 1] = g2;
-
+                m_patches[old]     = g4;
+                m_patches[old + 1] = g5;
             }
             else
             {
                 auto old = atomicAdd(m_element_count.get(), 1);
-                m_patches[old] = pn;
-
+                m_patches[old] = p;
             }
         }
     };
 
     //thrust::copy(g.begin(), g.end(), std::ostream_iterator< float >(std::cout, " "));
 
-    patches test_distances(const patches& n, const patches& np)
+    //split procedure, generates new patches if they are too close
+    patches test_distances(const patches& n, const samples& np )
     {
         patches                      n2;
         thrust::device_vector<uint32_t> element_count;
@@ -81,8 +81,8 @@ namespace freeform
         element_count.resize(1);
         host_element_count.resize(1);
 
-        auto b = thrust::make_zip_iterator( thrust::make_tuple ( n.begin(), np.begin() ) );
-        auto e = thrust::make_zip_iterator( thrust::make_tuple(  n.end(),   np.end()   ) );
+        auto b = n.begin();
+        auto e = n.end();
 
         thrust::for_each(b, e, multi_eval_patches2(13, &n2[0], &element_count[0]));
 

@@ -29,37 +29,37 @@ namespace freeform
 
         }
 
-        __device__ float x(uint32_t i, uint32_t step) const
+        __device__ float sample_x(uint32_t i, uint32_t step) const
         {
             return m_center_x + m_radius * cosf((i + step) * m_step);
         }
 
-        __device__ float y(uint32_t i, uint32_t step) const
+        __device__ float sample_y(uint32_t i, uint32_t step) const
         {
             return m_center_y + m_radius * sinf((i + step) * m_step);
         }
 
-        __device__ thrust::tuple< patch, patch, tab > operator() (uint32_t i) const
+        __device__ thrust::tuple< sample, patch, tab > operator() (uint32_t i) const
         {
-            float x0 = x(3 * i, 0);
-            float x1 = x(3 * i, 1);
-            float x2 = x(3 * i, 2);
-            float x3 = x(3 * i, 3);
+            float x0 = sample_x(3 * i, 0);
+            float x1 = sample_x(3 * i, 1);
+            float x2 = sample_x(3 * i, 2);
+            float x3 = sample_x(3 * i, 3);
 
-            float y0 = y(3 * i, 0);
-            float y1 = y(3 * i, 1);
-            float y2 = y(3 * i, 2);
-            float y3 = y(3 * i, 3);
+            float y0 = sample_y(3 * i, 0);
+            float y1 = sample_y(3 * i, 1);
+            float y2 = sample_y(3 * i, 2);
+            float y3 = sample_y(3 * i, 3);
 
-            freeform::patch p0 = { x0, x1, x2, x3, y0, y1, y2, y3 };
-            freeform::patch p1 = cub_bezier_interpol( p0 );
+            freeform::sample p0 = { x0, x1, x2, x3, y0, y1, y2, y3 };
 
+            //obtain patch control points from sampled points
+            auto p1 = interpolate_curve( p0 );
 
             float min_x = min4(p1.x0, p1.x1, p1.x2, p1.x3);
             float min_y = min4(p1.y0, p1.y1, p1.y2, p1.y3);
             float max_x = max4(p1.x0, p1.x1, p1.x2, p1.x3);
             float max_y = max4(p1.y0, p1.y1, p1.y2, p1.y3);
-
 
             float4  tb = math::set(min_x, max_x, min_y, max_y );
             
@@ -70,12 +70,12 @@ namespace freeform
         }
     };
 
-    thrust::tuple< patches, patches  > inititialize_free_form(uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count)
+    thrust::tuple< samples, patches  > inititialize_free_form(uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count)
     {
         thrust::device_vector<float> x;
         thrust::device_vector<float> y;
 
-        patches n;
+        samples n;
         patches np;
         tabs    tabs;
 
@@ -96,9 +96,7 @@ namespace freeform
         auto o      = thrust::make_zip_iterator(thrust::make_tuple(n.begin(), np.begin(), tabs.begin()));
 
         thrust::transform(begin, end, o, generate_patch(static_cast<float> (center_image_x), static_cast<float> (center_image_y), radius, pas_pt_patch));
-
-
-        return std::move(thrust::make_tuple(std::move(n), std::move(np) )); //, std::move(tabs)));
+        return std::move(thrust::make_tuple(std::move(n), std::move(np) )); 
     }
 }
 

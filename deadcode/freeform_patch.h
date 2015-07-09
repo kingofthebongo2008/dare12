@@ -23,7 +23,7 @@ namespace freeform
         float y3;
     };
 
-    struct sample
+    struct patch_sample
     {
         float x0;
         float x1;
@@ -41,10 +41,6 @@ namespace freeform
         float x;
         float y;
     };
-
-    typedef thrust::device_vector< patch >          patches;
-    typedef thrust::device_vector< point >          points;
-    typedef thrust::device_vector< sample >         samples;
 
     __host__ __device__ inline point make_point( float x, float y )
     {
@@ -75,6 +71,9 @@ namespace freeform
         return a.m_index == b.m_index && a.m_aabb.x == b.m_aabb.x && a.m_aabb.y == b.m_aabb.y && a.m_aabb.z == b.m_aabb.z && a.m_aabb.w == b.m_aabb.w;
     }
 
+    typedef thrust::device_vector< patch >          patches;
+    typedef thrust::device_vector< point >          points;
+    typedef thrust::device_vector< patch_sample >   samples;
     typedef thrust::device_vector< tab>             tabs;
 
 
@@ -98,7 +97,7 @@ namespace freeform
     }
 
     //curve interpolation, find control points from curve points
-    __device__ inline patch interpolate_curve( const sample& p )
+    __device__ inline patch interpolate_curve( const patch_sample& p )
     {
         //see equation (4) from the paper
         using namespace math;
@@ -134,14 +133,14 @@ namespace freeform
         return make_point(x, y);
     }
 
-    __device__ inline sample multi_eval_patch(patch p, float4 t)
+    __device__ inline patch_sample multi_eval_patch(patch p, float4 t)
     {
         auto r0 = eval_patch(p, t.x);
         auto r1 = eval_patch(p, t.y);
         auto r2 = eval_patch(p, t.z);
         auto r3 = eval_patch(p, t.w);
 
-        sample r = { r0.x, r1.x, r2.x, r3.x, r0.y, r1.y, r2.y, r3.y };
+        patch_sample r = { r0.x, r1.x, r2.x, r3.x, r0.y, r1.y, r2.y, r3.y };
 
         return r;
     }

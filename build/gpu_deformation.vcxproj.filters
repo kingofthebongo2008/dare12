@@ -33,6 +33,9 @@
     <Filter Include="header files\include\os\windows">
       <UniqueIdentifier>{ae2ebb47-46cc-4623-b7d2-747f410e2afa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="header files\rendering">
+      <UniqueIdentifier>{746abed5-9270-4be6-976b-7af159ad863c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\precompiled.cpp">
@@ -89,9 +92,6 @@
       <Filter>header files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\rendering.h">
-      <Filter>header files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\rendering_application.h">
       <Filter>header files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\math\math_functions.h">
@@ -226,6 +226,15 @@
     <ClInclude Include="..\include\os\windows\wnd_application.h">
       <Filter>header files\include\os\windows</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\patch_rendering_application.h">
+      <Filter>header files\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\rendering_application.h">
+      <Filter>header files\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\sample_rendering_application.h">
+      <Filter>header files\rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="readMe.txt" />
@@ -241,21 +250,6 @@
       <Filter>source Files</Filter>
     </CudaCompile>
     <CudaCompile Include="..\src\main.cu">
-      <Filter>source Files</Filter>
-    </CudaCompile>
-    <CudaCompile Include="..\src\cuda_test_distances.cu">
-      <Filter>source Files</Filter>
-    </CudaCompile>
-    <CudaCompile Include="..\src\cuda_normal_curve.cu">
-      <Filter>source Files</Filter>
-    </CudaCompile>
-    <CudaCompile Include="..\src\cuda_displace_points.cu">
-      <Filter>source Files</Filter>
-    </CudaCompile>
-    <CudaCompile Include="..\src\cuda_polygon_computation.cu">
-      <Filter>source Files</Filter>
-    </CudaCompile>
-    <CudaCompile Include="..\src\cuda_flip.cu">
       <Filter>source Files</Filter>
     </CudaCompile>
   </ItemGroup>

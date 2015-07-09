@@ -19,7 +19,7 @@ namespace math
         return a * t + (1 - t) * b;
     }
 
-    __device__ inline float decaste_casteljau(float4 points, float t)
+    __device__ inline float decasteljau(float4 points, float t)
     {
         auto b0_0 = lerp( math::get_y(points), math::get_x(points), t);
         auto b0_1 = lerp( math::get_z(points), math::get_y(points), t);

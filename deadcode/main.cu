@@ -54,10 +54,18 @@ namespace freeform
     imaging::cuda_texture create_canny_texture(const imaging::cuda_texture& texture_color, float threshold);
 
 
-    thrust::tuple< samples, patches  > inititialize_free_form(uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count);
+    thrust::tuple< samples, patches > inititialize_free_form(uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count);
 
-    void display( const imaging::cuda_texture& t, const patches& p );
-    void display(const imaging::cuda_texture& t,  const samples& p );
+    patches test_distances(const patches& p, const patches& p_n);
+    patches normal_curve(const patches& n);
+
+    thrust::tuple<points, thrust::device_vector<uint8_t> >      displace_points(const patches& m, const patches& nor, const imaging::cuda_texture& grad);
+    thrust::tuple<patches, tabs >                               polygon_computation(points& n);
+    
+    thrust::tuple<patches, patches> flip( patches& p, tabs& t);
+
+    void    display(const imaging::cuda_texture& t, const thrust::host_vector< patch>& p, const graphic::transform_info& transform);
+    void    display(const imaging::cuda_texture& t, const thrust::device_vector< patch>& p);
 }
 
 static inline float l2_norm(float x, float y)
@@ -129,7 +137,28 @@ int32_t main( int argc, char const* argv[] )
 
     auto init = freeform::inititialize_free_form( center_image_x, center_image_y, radius, patch_count);
 
-    freeform::display(gray, thrust::get<1>(init));
+    auto ff     = init;
+
+    for (auto i = 0; i < 5; ++i )
+    {
+
+        auto m    = freeform::test_distances(thrust::get<0>(init), thrust::get<1>(init) );
+        auto nor  = freeform::normal_curve(m);
+        auto n_s  = displace_points( m, nor, canny );
+
+        auto n    = polygon_computation(thrust::get<0>(n_s));
+        //thrust::sort(thrust::get<1>(n).begin(), thrust::get<1>(n).end(), lexicographical_sorter());
+
+        auto flipped = flip(thrust::get<0>(n), thrust::get<1>(n));
+
+        freeform::display(  gray, thrust::get<0>(flipped) );
+        //freeform::display(gray, thrust::get<1>(flipped));
+
+        init = flipped;
+        
+    }
+
+
 
     
     return 0;
@@ -137,3 +166,15 @@ int32_t main( int argc, char const* argv[] )
 }
 
 
+/*
+//output results
+thrust::host_vector<freeform::tab > test;
+test.resize(thrust::get<1>(n).size());
+
+thrust::copy(thrust::get<1>(n).begin(), thrust::get<1>(n).end(), test.begin() );
+
+std::chrono::steady_clock::time_point end1 = std::chrono::steady_clock::now();
+std::cout << "Filtering on device took: " << std::chrono::duration_cast<std::chrono::milliseconds>(end1 - start1).count() << " ms" << std::endl;
+
+thrust::copy(test.begin(), test.end(), std::ostream_iterator< freeform::tab >(std::cout, " "));
+*/
