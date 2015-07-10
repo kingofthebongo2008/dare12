@@ -131,8 +131,10 @@ int32_t main( int argc, char const* argv[] )
 
     auto init = freeform::inititialize_free_form( center_image_x, center_image_y, radius, patch_count);
 
+    //deform the patches along the normal
     auto deformed = freeform::deform(std::get<1>(init));
 
+    //display the results
     freeform::display(gray, std::get<1>(init));
     freeform::display(gray, deformed);
 

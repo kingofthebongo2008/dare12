@@ -121,9 +121,7 @@ namespace freeform
         r.y1 = math::get_y(dy);
         r.y2 = math::get_z(dy);
         r.y3 = math::get_w(dy);
-
         return r;
-
     }
 
     struct normal_curve_points_kernel
@@ -145,7 +143,6 @@ namespace freeform
             sample displaced    = madd(gradient, normal, s);
 
             //sample the derivative of a patch and output 4 points along the normal
-
             return displaced;
         }
     };
