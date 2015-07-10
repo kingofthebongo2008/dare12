@@ -70,6 +70,7 @@ namespace freeform
         }
     };
 
+    //sample the curve and obtain patches through curve interpolation as in the paper
     thrust::tuple< samples, patches  > inititialize_free_form(uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count)
     {
         thrust::device_vector<float> x;
@@ -85,7 +86,6 @@ namespace freeform
 
         auto iterations = static_cast<uint32_t> (ceilf(2 * pi / pas_pt_patch));
 
-    
         n.resize( iterations / 3 );
         np.resize(iterations / 3);
         tabs.resize(iterations / 3);

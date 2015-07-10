@@ -112,7 +112,7 @@ namespace freeform
             uint32_t strides[] = { 2 * sizeof(float) }; // 3 dimensions per control point (x,y,z)
             uint32_t offsets[] = { 0 };
 
-            device_context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
+            device_context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINESTRIP);
             device_context->IASetInputLayout(m_samples_ia_layout);
 
             ID3D11Buffer* buffers[] =
