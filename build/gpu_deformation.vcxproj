@@ -183,6 +183,7 @@
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="..\src\cuda_canny.cu" />
+    <CudaCompile Include="..\src\cuda_deform.cu" />
     <CudaCompile Include="..\src\cuda_grayscale.cu" />
     <CudaCompile Include="..\src\cuda_init_freeform.cu" />
     <CudaCompile Include="..\src\main.cu" />

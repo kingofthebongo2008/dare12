@@ -129,8 +129,8 @@ namespace freeform
         math::float4  xs = math::set(p.x0, p.x1, p.x2, p.x3);
         math::float4  ys = math::set(p.y0, p.y1, p.y2, p.y3);
 
-        auto x = math::decasteljau(xs, t);
-        auto y = math::decasteljau(ys, t);
+        auto x = math::decasteljau_3(xs, t);
+        auto y = math::decasteljau_3(ys, t);
         return make_point(x, y);
     }
 

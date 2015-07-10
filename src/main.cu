@@ -3,6 +3,7 @@
 #include <chrono>
 #include <cstdint>
 #include <memory>
+#include <tuple>
 
 
 #include <thrust/tuple.h>
@@ -54,7 +55,7 @@ namespace freeform
     imaging::cuda_texture create_canny_texture(const imaging::cuda_texture& texture_color, float threshold);
 
 
-    thrust::tuple< samples, patches  > inititialize_free_form(uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count);
+    std::tuple< samples, patches  > inititialize_free_form(uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count);
 
     void display( const imaging::cuda_texture& t, const patches& p );
     void display(const imaging::cuda_texture& t,  const samples& p );
@@ -129,7 +130,7 @@ int32_t main( int argc, char const* argv[] )
 
     auto init = freeform::inititialize_free_form( center_image_x, center_image_y, radius, patch_count);
 
-    freeform::display(gray, thrust::get<0>(init));
+    freeform::display(gray, std::get<1>(init));
 
     return 0;
 

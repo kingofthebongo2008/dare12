@@ -1,8 +1,13 @@
 #include "precompiled.h"
 
+#include <tuple>
+#include <thrust/transform.h>
+
 #include "freeform_patch.h"
 
-#include <thrust/transform.h>
+
+
+
 
 
 inline std::ostream& operator<<(std::ostream& s, const float4& p)
@@ -71,7 +76,7 @@ namespace freeform
     };
 
     //sample the curve and obtain patches through curve interpolation as in the paper
-    thrust::tuple< samples, patches  > inititialize_free_form(uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count)
+    std::tuple< samples, patches  > inititialize_free_form(uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count)
     {
         thrust::device_vector<float> x;
         thrust::device_vector<float> y;
@@ -96,7 +101,7 @@ namespace freeform
         auto o      = thrust::make_zip_iterator(thrust::make_tuple(n.begin(), np.begin(), tabs.begin()));
 
         thrust::transform(begin, end, o, generate_patch(static_cast<float> (center_image_x), static_cast<float> (center_image_y), radius, pas_pt_patch));
-        return std::move(thrust::make_tuple(std::move(n), std::move(np) )); 
+        return std::move(std::make_tuple(std::move(n), std::move(np) )); 
     }
 }
 

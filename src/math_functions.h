@@ -48,4 +48,21 @@ namespace math
 
         return b2_0;
     }
+
+    //returns the control points of the quadratic curve, which is a derivative of a cubic curve
+    __device__ inline float4 cubic_bezier_derivative( float4 points )
+    {
+        //make vector p1, p2, p3
+        auto a = swizzle<y, z, w, w >(points);
+        auto m = math::set(3.0f, 3.0f, 3.0f, 0.0f);
+
+        //make curve which is
+
+        // 3 * ( p1 - p0), 3 * ( p2 - p1),3 * ( p3 - p2)
+        auto r = math::mul(m, math::sub(a, points));
+
+        //.w is undefined
+
+        return r;
+    }
 }
