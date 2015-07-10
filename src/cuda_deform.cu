@@ -140,22 +140,22 @@ namespace freeform
             
             sample normal       = normal_vector(s_derivative);
 
-            float4 gradient     = math::set(100.0f,100.0f, 100.0f, 100.0f);
+            //float4 gradient     = math::set(100.0f,100.0f, 100.0f, 100.0f);
 
             //displace points along the normals
-            sample displaced    = madd(gradient, normal, s);
+            //sample displaced    = madd(gradient, normal, s);
 
             //sample the derivative of a patch and output 4 points along the normal
-            return displaced;
+            return normal;
         }
     };
 
-    struct scatter_points_kernel
+    struct scatter_normals_kernel
     {
         //scatter the samples into different points, so we can get them more parallel
-        template <typename t> __host__ __device__ void operator()( t& t)
+        template <typename t> __device__ void operator()( t& t)
         {
-            patch p = thrust::get < 0 >(t);
+            sample p = thrust::get < 0 >(t);
 
             point p0;
             point p1;
@@ -179,6 +179,38 @@ namespace freeform
         }
     };
 
+    struct scatter_points_kernel
+    {
+        //scatter the samples into different points, so we can get them more parallel
+        template <typename t> __device__ void operator()(t& tp)
+        {
+            patch p  = thrust::get < 0 >(tp);
+
+            float4 t = math::set(0.0f, 1.0f / 3.0f, 2.0f / 3.0f, 3.0f / 3.0f);
+            sample s = multi_eval_patch_3(p, t);             //sample the bezier curve
+
+            point p0;
+            point p1;
+            point p2;
+            point p3;
+
+            p0.x = s.x0;
+            p1.x = s.x1;
+            p2.x = s.x2;
+            p3.x = s.x3;
+
+            p0.y = s.y0;
+            p1.y = s.y1;
+            p2.y = s.y2;
+            p3.y = s.y3;
+
+            thrust::get<1>(tp) = p0;
+            thrust::get<2>(tp) = p1;
+            thrust::get<3>(tp) = p2;
+            thrust::get<4>(tp) = p3;
+        }
+    };
+
     //sample the curve and obtain patches through curve interpolation as in the paper
     samples deform( const patches& p )
     {
@@ -187,24 +219,41 @@ namespace freeform
         samples s;
         s.resize(p.size());
 
+        //get normals that we want to transfer along
         thrust::transform(p.begin(), p.end(), s.begin(), normal_curve_points_kernel() );
 
-        //convert to points
-        points  pts;
-        pts.resize(s.size() * 4);
+        //convert to points for easier gradient sampling
+        points  normal_vectors;
+        normal_vectors.resize(s.size() * 4);
 
-        auto r0 = make_strided_range(pts.begin() + 0, pts.end(), 4);
-        auto r1 = make_strided_range(pts.begin() + 1, pts.end(), 4);
-        auto r2 = make_strided_range(pts.begin() + 2, pts.end(), 4);
-        auto r3 = make_strided_range(pts.begin() + 3, pts.end(), 4);
+        {
+            auto r0 = make_strided_range(normal_vectors.begin() + 0, normal_vectors.end(), 4);
+            auto r1 = make_strided_range(normal_vectors.begin() + 1, normal_vectors.end(), 4);
+            auto r2 = make_strided_range(normal_vectors.begin() + 2, normal_vectors.end(), 4);
+            auto r3 = make_strided_range(normal_vectors.begin() + 3, normal_vectors.end(), 4);
 
-        auto b = make_zip_iterator(make_tuple(p.begin(),    r0.begin(), r1.begin(), r2.begin(), r3.begin()));
-        auto e = make_zip_iterator(make_tuple(p.end(),      r0.end(),   r1.end(),   r2.end(),   r3.end()));
+            auto b = make_zip_iterator(make_tuple(s.begin(), r0.begin(), r1.begin(), r2.begin(), r3.begin()));
+            auto e = make_zip_iterator(make_tuple(s.end(), r0.end(), r1.end(), r2.end(), r3.end()));
+            thrust::for_each(b, e, scatter_normals_kernel());
+        }
 
-        thrust::for_each(b, e, scatter_points_kernel() );
-
-        print<points, point>(pts);
         
+        //convert patches to points for easier gradient sampling
+        points  points;
+        points.resize(s.size() * 4);
+        {
+            
+            auto r0 = make_strided_range(points.begin() + 0, points.end(), 4);
+            auto r1 = make_strided_range(points.begin() + 1, points.end(), 4);
+            auto r2 = make_strided_range(points.begin() + 2, points.end(), 4);
+            auto r3 = make_strided_range(points.begin() + 3, points.end(), 4);
+
+            auto b = make_zip_iterator(make_tuple(p.begin(), r0.begin(), r1.begin(), r2.begin(), r3.begin()));
+            auto e = make_zip_iterator(make_tuple(p.end(), r0.end(), r1.end(), r2.end(), r3.end()));
+            thrust::for_each(b, e, scatter_points_kernel());
+            
+        }
+
         return s;
     }
     
