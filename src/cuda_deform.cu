@@ -8,6 +8,9 @@
 
 #include "math_functions.h"
 
+#include "cuda_strided_range.h"
+#include "cuda_print_utils.h"
+
 namespace freeform
 {
     __device__ inline float4 make_x(const patch& p)
@@ -147,14 +150,61 @@ namespace freeform
         }
     };
 
-    
+    struct scatter_points_kernel
+    {
+        //scatter the samples into different points, so we can get them more parallel
+        template <typename t> __host__ __device__ void operator()( t& t)
+        {
+            patch p = thrust::get < 0 >(t);
+
+            point p0;
+            point p1;
+            point p2;
+            point p3;
+
+            p0.x = p.x0;
+            p1.x = p.x1;
+            p2.x = p.x2;
+            p3.x = p.x3;
+
+            p0.y = p.y0;
+            p1.y = p.y1;
+            p2.y = p.y2;
+            p3.y = p.y3;
+
+            thrust::get<1>(t) = p0;
+            thrust::get<2>(t) = p1;
+            thrust::get<3>(t) = p2;
+            thrust::get<4>(t) = p3;
+        }
+    };
+
     //sample the curve and obtain patches through curve interpolation as in the paper
     samples deform( const patches& p )
     {
+        using namespace thrust;
+
         samples s;
         s.resize(p.size());
 
         thrust::transform(p.begin(), p.end(), s.begin(), normal_curve_points_kernel() );
+
+        //convert to points
+        points  pts;
+        pts.resize(s.size() * 4);
+
+        auto r0 = make_strided_range(pts.begin() + 0, pts.end(), 4);
+        auto r1 = make_strided_range(pts.begin() + 1, pts.end(), 4);
+        auto r2 = make_strided_range(pts.begin() + 2, pts.end(), 4);
+        auto r3 = make_strided_range(pts.begin() + 3, pts.end(), 4);
+
+        auto b = make_zip_iterator(make_tuple(p.begin(),    r0.begin(), r1.begin(), r2.begin(), r3.begin()));
+        auto e = make_zip_iterator(make_tuple(p.end(),      r0.end(),   r1.end(),   r2.end(),   r3.end()));
+
+        thrust::for_each(b, e, scatter_points_kernel() );
+
+        print<points, point>(pts);
+        
         return s;
     }
     

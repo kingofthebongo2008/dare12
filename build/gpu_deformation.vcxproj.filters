@@ -241,6 +241,12 @@
     <ClInclude Include="..\src\shaders\freeform_shader_samples_vs.h">
       <Filter>source Files\shaders</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cuda_strided_range.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cuda_print_utils.h">
+      <Filter>header files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="readMe.txt" />
