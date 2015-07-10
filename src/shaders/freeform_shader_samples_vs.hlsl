@@ -31,11 +31,13 @@ vs_samples_output main(in vs_samples_input i)
 
     o     = i.m_position * transform;
 
+    //invert y
     o.y   = 1.0f - o.y;
-    o     = o *  2.0f - 1.0f;
+    o     = o *  2.0f - 1.0f;   //transform into perspective space
 
     float x = o.x;
     
+    //swap x and y to match the picture
     o.x = o.y;
     o.y = x;
 
