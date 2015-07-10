@@ -2,6 +2,8 @@
 
 #include "rendering_application.h"
 
+#include "shaders/freeform_shader_samples_vs.h"
+#include "shaders/freeform_shader_samples_ps.h"
 
 namespace freeform
 {
@@ -19,21 +21,15 @@ namespace freeform
         {
 
             auto r0 = create_shader_samples_vs_async(m_context.m_device);
-            auto r1 = create_shader_samples_hs_async(m_context.m_device);
-            auto r2 = create_shader_samples_ds_async(m_context.m_device);
             auto r3 = create_shader_samples_ps_async(m_context.m_device);
 
             r0.wait();
-            r1.wait();
-            r2.wait();
             r3.wait();
 
-            m_bezier_vs = std::move(r0.get());
-            m_bezier_hs = std::move(r1.get());
-            m_bezier_ds = std::move(r2.get());
-            m_bezier_ps = std::move(r3.get());
+            m_samples_vs = std::move(r0.get());
+            m_samples_ps = std::move(r3.get());
 
-            m_bezier_ia_layout = std::move(shader_bezier_layout(m_context.m_device.get(), m_bezier_vs));
+            m_samples_ia_layout = std::move(shader_samples_layout(m_context.m_device.get(), m_samples_vs));
             m_control_points_buffer = d3d11::create_default_vertex_buffer(m_context.m_device.get(), gdi.get_patches(), graphic::get_patch_size(gdi));
             m_control_points_count = gdi.get_count();
             gx::constant_buffer_update(m_context.m_immediate_context, m_transform_buffer, m_transform_info);
@@ -116,8 +112,8 @@ namespace freeform
             uint32_t strides[] = { 2 * sizeof(float) }; // 3 dimensions per control point (x,y,z)
             uint32_t offsets[] = { 0 };
 
-            device_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST); // 4 control points per primitive
-            device_context->IASetInputLayout(m_bezier_ia_layout);
+            device_context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
+            device_context->IASetInputLayout(m_samples_ia_layout);
 
             ID3D11Buffer* buffers[] =
             {
@@ -127,12 +123,9 @@ namespace freeform
             device_context->IASetVertexBuffers(0, 1, buffers, strides, offsets);
 
 
-            device_context->VSSetShader(m_bezier_vs, nullptr, 0);
-            device_context->PSSetShader(m_bezier_ps, nullptr, 0);
-            device_context->HSSetShader(m_bezier_hs, nullptr, 0);
-            device_context->DSSetShader(m_bezier_ds, nullptr, 0);
+            device_context->VSSetShader(m_samples_vs, nullptr, 0);
+            device_context->PSSetShader(m_samples_ps, nullptr, 0);
             device_context->GSSetShader(nullptr, nullptr, 0);
-
 
             ID3D11Buffer* cbuffers[] =
             {
@@ -150,15 +143,13 @@ namespace freeform
         d3d11::itexture2d_ptr                   m_texture;
         d3d11::ishaderresourceview_ptr          m_texture_view;
 
-        shader_bezier_vs                        m_bezier_vs;
-        d3d11::ihullshader_ptr                  m_bezier_hs;
-        d3d11::idomainshader_ptr                m_bezier_ds;
-        d3d11::ipixelshader_ptr                 m_bezier_ps;
+        shader_samples_vs                       m_samples_vs;
+        d3d11::ipixelshader_ptr                 m_samples_ps;
         d3d11::ibuffer_ptr                      m_control_points_buffer;
         size_t                                  m_control_points_count;
         d3d11::ibuffer_ptr                      m_transform_buffer;
 
         graphic::transform_info                 m_transform_info;
-        shader_bezier_layout                    m_bezier_ia_layout;
+        shader_samples_layout                   m_samples_ia_layout;
     };
 }

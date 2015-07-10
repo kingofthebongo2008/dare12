@@ -19,10 +19,7 @@
 
 #include "imaging_utils.h"
 
-#include "shaders/freeform_shader_bezier_vs.h"
-#include "shaders/freeform_shader_bezier_hs.h"
-#include "shaders/freeform_shader_bezier_ds.h"
-#include "shaders/freeform_shader_bezier_ps.h"
+
 
 #include "graphic_types.h"
 

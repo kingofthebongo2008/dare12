@@ -62,14 +62,14 @@ namespace freeform
         d3d11::idomainshader_ptr     m_shader;
     };
 
-    inline shader_bezier_ds   create_shader_samples_ds(ID3D11Device* device)
+    inline shader_bezier_ds   create_shader_bezier_ds(ID3D11Device* device)
     {
         return shader_bezier_ds(details::create_shader_bezier_ds(device));
     }
 
-    inline std::future< shader_bezier_ds> create_shader_samples_ds_async(ID3D11Device* device)
+    inline std::future< shader_bezier_ds> create_shader_bezier_ds_async(ID3D11Device* device)
     {
-        return std::async(std::launch::async, create_shader_samples_ds, device);
+        return std::async(std::launch::async, create_shader_bezier_ds, device);
     }
 }
 

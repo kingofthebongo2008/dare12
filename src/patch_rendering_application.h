@@ -2,6 +2,10 @@
 
 #include "rendering_application.h"
 
+#include "shaders/freeform_shader_bezier_vs.h"
+#include "shaders/freeform_shader_bezier_hs.h"
+#include "shaders/freeform_shader_bezier_ds.h"
+#include "shaders/freeform_shader_bezier_ps.h"
 
 namespace freeform
 {
@@ -18,10 +22,10 @@ namespace freeform
             , m_transform_buffer(d3d11::create_constant_buffer( m_context.m_device, sizeof(graphic::transform_info)))
         {
 
-            auto r0 = create_shader_samples_vs_async( m_context.m_device );
-            auto r1 = create_shader_samples_hs_async(m_context.m_device);
-            auto r2 = create_shader_samples_ds_async(m_context.m_device);
-            auto r3 = create_shader_samples_ps_async(m_context.m_device);
+            auto r0 = create_shader_bezier_vs_async( m_context.m_device );
+            auto r1 = create_shader_bezier_hs_async(m_context.m_device);
+            auto r2 = create_shader_bezier_ds_async(m_context.m_device);
+            auto r3 = create_shader_bezier_ps_async(m_context.m_device);
 
             r0.wait();
             r1.wait();

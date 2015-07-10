@@ -129,7 +129,7 @@ int32_t main( int argc, char const* argv[] )
 
     auto init = freeform::inititialize_free_form( center_image_x, center_image_y, radius, patch_count);
 
-    freeform::display(gray, thrust::get<1>(init));
+    freeform::display(gray, thrust::get<0>(init));
 
     
     return 0;
