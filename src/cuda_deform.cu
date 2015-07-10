@@ -8,8 +8,11 @@
 
 #include "math_functions.h"
 
+#include "cuda_imaging.h"
 #include "cuda_strided_range.h"
 #include "cuda_print_utils.h"
+
+#include <algorithm>
 
 namespace freeform
 {
@@ -21,6 +24,33 @@ namespace freeform
     __device__ inline float4 make_y(const patch& p)
     {
         return math::set(p.y0, p.y1, p.y2, p.y3);
+    }
+
+    __device__ inline point add(point a, point b)
+    {
+        point c;
+
+        c.x = a.x + b.x;
+        c.y = a.y + b.y;
+        return c;
+    }
+
+    __device__ inline point mul(point a, point b)
+    {
+        point c;
+
+        c.x = a.x * b.x;
+        c.y = a.y * b.y;
+        return c;
+    }
+
+    __device__ inline point mad(point a, point b, point c)
+    {
+        point d;
+
+        d.x = a.x * b.x + c.x;
+        d.y = a.y * b.y + c.y;
+        return d;
     }
 
     __device__ inline patch compute_derivatives(const patch& p)
@@ -100,7 +130,7 @@ namespace freeform
 
     }
 
-    __device__ inline sample madd(float4 gradient, const sample& s0, const sample& s1)
+    __device__ inline sample mad(float4 gradient, const sample& s0, const sample& s1)
     {
         float4 x  = math::set(s0.x0, s0.x1, s0.x2, s0.x3);
         float4 y  = math::set(s0.y0, s0.y1, s0.y2, s0.y3);
@@ -143,7 +173,7 @@ namespace freeform
             //float4 gradient     = math::set(100.0f,100.0f, 100.0f, 100.0f);
 
             //displace points along the normals
-            //sample displaced    = madd(gradient, normal, s);
+            //sample displaced    = mad(gradient, normal, s);
 
             //sample the derivative of a patch and output 4 points along the normal
             return normal;
@@ -211,8 +241,151 @@ namespace freeform
         }
     };
 
+    __device__ inline void voisinage(float x, float y, int32_t v1[], int32_t v2[])
+    {
+        int32_t x1 = static_cast<int32_t> (floorf(x));  //todo cast to int
+        int32_t y1 = static_cast<int32_t> (floorf(y));  //todo cast to int
+
+        //% Returns the "pixelique" coordinates of the point neighborhood( its size is 9 * 9 )? 8x8?
+
+        const int32_t indices_v1[8] = { -1, -1, -1, 0, 0, +1, +1, +1 };
+        const int32_t indices_v2[8] = { -1, 0, 1, -1, 1, -1, 0, +1 };
+
+        for (uint32_t i = 0; i < 8; ++i)
+        {
+            v1[i] = x1 + indices_v1[i];
+        }
+
+        for (uint32_t i = 0; i < 8; ++i)
+        {
+            v2[i] = y1 + indices_v2[i];
+        }
+    }
+
+
+    struct deform_points_kernel
+    {
+        const   cuda::image_kernel_info m_sampler;
+        const   uint8_t*                m_grad;
+
+        deform_points_kernel(   const cuda::image_kernel_info& sampler, const uint8_t* grad ) : m_sampler(sampler), m_grad(grad)
+        {
+
+        }
+
+        __device__ static inline float    compute_sobel(
+            float ul, // upper left
+            float um, // upper middle
+            float ur, // upper right
+            float ml, // middle left
+            float mm, // middle (unused)
+            float mr, // middle right
+            float ll, // lower left
+            float lm, // lower middle
+            float lr, // lower right
+            float& dx,
+            float& dy
+            )
+        {
+            dx = ur + 2 * mr + lr - ul - 2 * ml - ll;
+            dy   = ul + 2 * um + ur - ll - 2 * lm - lr;
+
+            float  sum = static_cast<float> (abs(dx) + abs(dy));
+            return sum;
+        }
+
+        __device__ point operator() (const thrust::tuple < point, point> p)
+        {
+            using namespace cuda;
+
+            auto pt = thrust::get<0>(p);
+            auto normal = thrust::get<1>(p);
+
+            auto x = pt.x;
+            auto y = pt.y;
+
+            const uint8_t* pix00 = sample_2d< uint8_t, border_type::clamp >(m_grad, m_sampler, x - 1, y - 1);
+            const uint8_t* pix01 = sample_2d< uint8_t, border_type::clamp >(m_grad, m_sampler, x - 0, y - 1);
+            const uint8_t* pix02 = sample_2d< uint8_t, border_type::clamp >(m_grad, m_sampler, x + 1, y - 1);
+
+
+            const uint8_t* pix10 = sample_2d< uint8_t, border_type::clamp>(m_grad, m_sampler, x - 1, y);
+            const uint8_t* pix11 = sample_2d< uint8_t, border_type::clamp>(m_grad, m_sampler, x - 0, y);
+            const uint8_t* pix12 = sample_2d< uint8_t, border_type::clamp>(m_grad, m_sampler, x + 1, y);
+
+            const uint8_t* pix20 = sample_2d< uint8_t, border_type::clamp >(m_grad, m_sampler, x - 1, y + 1);
+            const uint8_t* pix21 = sample_2d< uint8_t, border_type::clamp >(m_grad, m_sampler, x - 0, y + 1);
+            const uint8_t* pix22 = sample_2d< uint8_t, border_type::clamp >(m_grad, m_sampler, x + 1, y + 1);
+
+            float c   = 1.0f / 255.0f;
+
+            auto  u00 = *pix00 * c;
+            auto  u01 = *pix01 * c;
+            auto  u02 = *pix02 * c;
+
+            auto  u10 = *pix10 * c;
+            auto  u11 = *pix11 * c;
+            auto  u12 = *pix12 * c;
+
+            auto  u20 = *pix20 * c;
+            auto  u21 = *pix21 * c;
+            auto  u22 = *pix22 * c;
+
+            float dx = 0.0f;
+            float dy = 0.0f;
+
+            auto  r = compute_sobel(
+                u00, u01, u02,
+                u10, u11, u12,
+                u20, u21, u22, dx, dy
+                );
+
+            //normalize the gradient
+            float g = 1.0f / (r + 0.0001f);
+            dx = dx * g;
+            dy = dy * g;
+
+            float scale      = 2.0f;
+            float pixel_size = max( 2.0f / m_sampler.width(), 2.0f / m_sampler.height() );
+
+            point k1         = make_point(scale, scale);
+            point k          = make_point(-scale * 1.1f, -scale * 1.1f);
+
+            point grad       = make_point(dx, dy);
+            point d0         = mad(k1, normal, pt);
+            point d1         = mad(k, grad, d0);
+
+            return d1;
+        }
+    };
+
+    struct gather_samples_kernel
+    {
+        __device__ sample operator() (const thrust::tuple< point, point, point, point> & pt)
+        {
+            sample s;
+
+            point p0 = thrust::get<0>(pt);
+            point p1 = thrust::get<1>(pt);
+            point p2 = thrust::get<2>(pt);
+            point p3 = thrust::get<3>(pt);
+
+            s.x0 = p0.x;
+            s.x1 = p1.x;
+            s.x2 = p2.x;
+            s.x3 = p3.x;
+
+            s.y0 = p0.y;
+            s.y1 = p1.y;
+            s.y2 = p2.y;
+            s.y3 = p3.y;
+
+            return s;
+        }
+    };
+
     //sample the curve and obtain patches through curve interpolation as in the paper
-    samples deform( const patches& p )
+    samples deform(const patches& p, const imaging::cuda_texture& grad )
     {
         using namespace thrust;
 
@@ -239,14 +412,13 @@ namespace freeform
 
         
         //convert patches to points for easier gradient sampling
-        points  points;
-        points.resize(s.size() * 4);
+        points  pts;
+        pts.resize(s.size() * 4);
         {
-            
-            auto r0 = make_strided_range(points.begin() + 0, points.end(), 4);
-            auto r1 = make_strided_range(points.begin() + 1, points.end(), 4);
-            auto r2 = make_strided_range(points.begin() + 2, points.end(), 4);
-            auto r3 = make_strided_range(points.begin() + 3, points.end(), 4);
+            auto r0 = make_strided_range(pts.begin() + 0, pts.end(), 4);
+            auto r1 = make_strided_range(pts.begin() + 1, pts.end(), 4);
+            auto r2 = make_strided_range(pts.begin() + 2, pts.end(), 4);
+            auto r3 = make_strided_range(pts.begin() + 3, pts.end(), 4);
 
             auto b = make_zip_iterator(make_tuple(p.begin(), r0.begin(), r1.begin(), r2.begin(), r3.begin()));
             auto e = make_zip_iterator(make_tuple(p.end(), r0.end(), r1.end(), r2.end(), r3.end()));
@@ -254,7 +426,34 @@ namespace freeform
             
         }
 
-        return s;
+        //deform samples with the image gradient
+        points resampled_points;
+        resampled_points.resize(s.size() * 4);
+        {
+            auto info = ::cuda::create_image_kernel_info(grad);
+            auto pixels = grad.get_gpu_pixels();
+            
+            auto b = make_zip_iterator(make_tuple(pts.begin(), normal_vectors.begin()));
+            auto e = make_zip_iterator(make_tuple(pts.end(), normal_vectors.end()));
+            thrust::transform(b, e, resampled_points.begin(), deform_points_kernel(info, pixels) );
+        }
+
+        //gather transformed samples again
+        samples samples;
+        samples.resize(s.size());
+        {
+            auto b = resampled_points.begin();
+            auto e = resampled_points.end();
+
+            auto zb = make_zip_iterator(make_tuple(b,   b + 1,  b + 2,  b + 3));
+            auto ze = make_zip_iterator(make_tuple(e,   e,      e,      e));
+
+            auto s  = make_strided_range(zb, ze, 4 );
+
+            thrust::transform(s.begin(), s.end(), samples.begin(), gather_samples_kernel());
+        }
+
+        return samples;
     }
     
 }

@@ -185,7 +185,9 @@
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="..\src\cuda_canny.cu" />
-    <CudaCompile Include="..\src\cuda_deform.cu" />
+    <CudaCompile Include="..\src\cuda_deform.cu">
+      <GPUDebugInfo Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">true</GPUDebugInfo>
+    </CudaCompile>
     <CudaCompile Include="..\src\cuda_grayscale.cu" />
     <CudaCompile Include="..\src\cuda_init_freeform.cu" />
     <CudaCompile Include="..\src\main.cu" />

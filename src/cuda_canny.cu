@@ -53,7 +53,7 @@ namespace freeform
         if (is_in_interior(src, x, y))
         {
 
-            const uint8_t* pix00 = sample_2d< uint8_t, border_type::clamp >( img_in, src, x - 1, y - 1 );
+            const uint8_t* pix00 = sample_2d< uint8_t, border_type::clamp >(img_in, src, x - 1, y - 1 );
             const uint8_t* pix01 = sample_2d< uint8_t, border_type::clamp >(img_in, src, x - 0, y - 1);
             const uint8_t* pix02 = sample_2d< uint8_t, border_type::clamp >(img_in, src, x + 1, y - 1);
 
