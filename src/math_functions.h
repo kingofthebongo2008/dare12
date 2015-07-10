@@ -13,13 +13,12 @@ namespace math
         return sqrtf( x + y );
     }
 
-
     __device__  inline float lerp(float a, float b, float t)
     {
         return a * t + (1 - t) * b;
     }
 
-    //decasteljau algorith for cubic bezier, for evaluating the curves
+    //decasteljau algorithm for cubic bezier, for evaluating the curves
     __device__ inline float decasteljau_3(float4 points, float t)
     {
         auto b0_0 = lerp( math::get_y(points), math::get_x(points), t);

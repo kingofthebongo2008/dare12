@@ -124,7 +124,8 @@ namespace freeform
         return r;
     }
 
-    __device__ inline point eval_patch( patch p, float t )
+    //eval cubic bezier
+    __device__ inline point eval_patch_3( patch p, float t )
     {
         math::float4  xs = math::set(p.x0, p.x1, p.x2, p.x3);
         math::float4  ys = math::set(p.y0, p.y1, p.y2, p.y3);
@@ -134,12 +135,37 @@ namespace freeform
         return make_point(x, y);
     }
 
-    __device__ inline sample multi_eval_patch(patch p, float4 t)
+    //eval cubic bezier for 4 points
+    __device__ inline sample multi_eval_patch_3(patch p, float4 t)
     {
-        auto r0 = eval_patch(p, t.x);
-        auto r1 = eval_patch(p, t.y);
-        auto r2 = eval_patch(p, t.z);
-        auto r3 = eval_patch(p, t.w);
+        auto r0 = eval_patch_3(p, t.x);
+        auto r1 = eval_patch_3(p, t.y);
+        auto r2 = eval_patch_3(p, t.z);
+        auto r3 = eval_patch_3(p, t.w);
+
+        sample r = { r0.x, r1.x, r2.x, r3.x, r0.y, r1.y, r2.y, r3.y };
+
+        return r;
+    }
+
+    //eval quadratic bezier
+    __device__ inline point eval_patch_2( patch p, float t )
+    {
+        math::float4  xs = math::set(p.x0, p.x1, p.x2, 0.0f);
+        math::float4  ys = math::set(p.y0, p.y1, p.y2, 0.0f);
+
+        auto x = math::decasteljau_2(xs, t);
+        auto y = math::decasteljau_2(ys, t);
+        return make_point(x, y);
+    }
+
+    //eval quadratic bezier for 4 points
+    __device__ inline sample multi_eval_patch_2(patch p, float4 t)
+    {
+        auto r0 = eval_patch_2(p, t.x);
+        auto r1 = eval_patch_2(p, t.y);
+        auto r2 = eval_patch_2(p, t.z);
+        auto r3 = eval_patch_2(p, t.w);
 
         sample r = { r0.x, r1.x, r2.x, r3.x, r0.y, r1.y, r2.y, r3.y };
 

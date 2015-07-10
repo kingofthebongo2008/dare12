@@ -56,6 +56,7 @@ namespace freeform
 
 
     std::tuple< samples, patches  > inititialize_free_form(uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count);
+    samples deform(const patches& p);
 
     void display( const imaging::cuda_texture& t, const patches& p );
     void display(const imaging::cuda_texture& t,  const samples& p );
@@ -130,7 +131,10 @@ int32_t main( int argc, char const* argv[] )
 
     auto init = freeform::inititialize_free_form( center_image_x, center_image_y, radius, patch_count);
 
+    auto deformed = freeform::deform(std::get<1>(init));
+
     freeform::display(gray, std::get<1>(init));
+    freeform::display(gray, deformed);
 
     return 0;
 
