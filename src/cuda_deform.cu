@@ -345,6 +345,8 @@ namespace freeform
             dx = dx * g;
             dy = dy * g;
 
+            dx = 22.0f; //test to see if the gradient works
+
             float scale      = 2.0f;
             float pixel_size = max( 2.0f / m_sampler.width(), 2.0f / m_sampler.height() );
 
@@ -361,7 +363,7 @@ namespace freeform
 
     struct gather_samples_kernel
     {
-        __device__ sample operator() (const thrust::tuple< point, point, point, point> & pt)
+        __device__ patch operator() (const thrust::tuple< point, point, point, point> & pt)
         {
             sample s;
 
@@ -380,12 +382,14 @@ namespace freeform
             s.y2 = p2.y;
             s.y3 = p3.y;
 
-            return s;
+            patch p = interpolate_curve(s);
+
+            return p;
         }
     };
 
     //sample the curve and obtain patches through curve interpolation as in the paper
-    samples deform(const patches& p, const imaging::cuda_texture& grad )
+    patches deform(const patches& p, const imaging::cuda_texture& grad )
     {
         using namespace thrust;
 
@@ -439,8 +443,8 @@ namespace freeform
         }
 
         //gather transformed samples again
-        samples samples;
-        samples.resize(s.size());
+        patches patches;
+        patches.resize(s.size());
         {
             auto b = resampled_points.begin();
             auto e = resampled_points.end();
@@ -450,10 +454,10 @@ namespace freeform
 
             auto s  = make_strided_range(zb, ze, 4 );
 
-            thrust::transform(s.begin(), s.end(), samples.begin(), gather_samples_kernel());
+            thrust::transform(s.begin(), s.end(), patches.begin(), gather_samples_kernel());
         }
 
-        return samples;
+        return patches;
     }
     
 }
