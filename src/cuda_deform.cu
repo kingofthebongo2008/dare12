@@ -393,7 +393,7 @@ namespace freeform
             return sum;
         }
 
-        __device__ point operator() (const thrust::tuple < point, point> p)
+        __device__ thrust::tuple<point, uint8_t> operator() (const thrust::tuple < point, point> p)
         {
             using namespace cuda;
 
@@ -440,10 +440,12 @@ namespace freeform
             point d0;
             auto w = m_sampler.width();
             auto h = m_sampler.height();
+            uint32_t stop = 0;
 
             if ( mx > 250  || pt.x > (w - 5) || pt.y > ( h - 5) ) 
             {  
                 d0 = pt;
+                stop = 1;
             }
             else
             {
@@ -451,7 +453,7 @@ namespace freeform
                 d0 = mad(k1, normal, pt);
             }
 
-            return d0;
+            return thrust::make_tuple(d0, stop);
         }
     };
 
@@ -483,7 +485,7 @@ namespace freeform
     };
 
     //sample the curve and obtain patches through curve interpolation as in the paper
-    patches deform(const patches& p, const imaging::cuda_texture& grad )
+    void deform( const patches& p, const imaging::cuda_texture& grad, patches& deformed, thrust::device_vector<uint32_t>& stop)
     {
         using namespace thrust;
 
@@ -527,18 +529,24 @@ namespace freeform
         //deform samples with the image gradient
         points resampled_points;
         resampled_points.resize(s.size() * 4);
+
+
+        stop.resize( s.size() * 4);
         {
             auto info = ::cuda::create_image_kernel_info(grad);
             auto pixels = grad.get_gpu_pixels();
             
             auto b = make_zip_iterator(make_tuple(pts.begin(), normal_vectors.begin()));
-            auto e = make_zip_iterator(make_tuple(pts.end(), normal_vectors.end()));
-            thrust::transform(b, e, resampled_points.begin(), deform_points_kernel2(info, pixels) );
+            auto e = make_zip_iterator(make_tuple(pts.end(),   normal_vectors.end()));
+
+            auto tb = make_zip_iterator(make_tuple(resampled_points.begin(),    stop.begin()));
+            auto te = make_zip_iterator(make_tuple(resampled_points.end(),      stop.end()));
+
+            thrust::transform(b, e, tb, deform_points_kernel2(info, pixels) );
         }
 
         //gather transformed samples again
-        patches patches;
-        patches.resize(s.size());
+        deformed.resize(s.size());
         {
             auto b = resampled_points.begin();
             auto e = resampled_points.end();
@@ -552,10 +560,9 @@ namespace freeform
             auto ze = make_zip_iterator(make_tuple(r0.end(),    r1.end(),   r2.end(),   r3.end()));
 
 
-            thrust::transform(zb, ze, patches.begin(), gather_samples_kernel());
+            thrust::transform(zb, ze, deformed.begin(), gather_samples_kernel());
         }
 
-        return patches;
     }
     
 }

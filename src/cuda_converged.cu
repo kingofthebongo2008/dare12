@@ -39,15 +39,11 @@ namespace freeform
     };
 
 
-    bool converged(const patches& a, const patches& b)
+    bool converged( thrust::device_vector<uint32_t>& stop )
     {
         using namespace thrust;
-
-        auto zb = make_zip_iterator(make_tuple(a.begin(), b.begin()));
-        auto ze = make_zip_iterator(make_tuple(a.end(), b.end()));
-        
-        auto norm = std::sqrt( transform_reduce(zb, ze, norm_patches(), 0.0f, plus<float>()));
-        return norm < 1.65;
+        auto norm = reduce(stop.begin(), stop.end(), 0, plus<uint32_t>());
+        return norm >= 0.99 * stop.size();
     }
 }
 

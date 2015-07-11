@@ -56,8 +56,8 @@ namespace freeform
 
 
     std::tuple< samples, patches  > inititialize_free_form(uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count);
-    patches deform(const patches& p, const imaging::cuda_texture& grad);
-    bool    converged(const patches& a, const patches& b);
+    void deform(const patches& p, const imaging::cuda_texture& grad, patches& deformed, thrust::device_vector<uint32_t>& stop );
+    bool    converged(thrust::device_vector<uint32_t>& stop);
 
     void display( const imaging::cuda_texture& t, const patches& p );
     void display(const imaging::cuda_texture& t,  const samples& p );
@@ -134,14 +134,17 @@ int32_t main( int argc, char const* argv[] )
 
     //deform the patches along the normal
 
-    auto deformed     = std::get<1>(init);
-    freeform::patches old;
+    auto deformed                  = std::get<1>(init);
+    freeform::patches              old;
+    thrust::device_vector<uint32_t> stop;
 
     do
     {
         old = deformed;
-        deformed = freeform::deform(old, canny);
-    } while (!converged(old, deformed));
+        //deformed = split( old );
+        
+        freeform::deform(old, canny, deformed, stop);
+    } while (!freeform::converged(stop));
 
 
     //display the results

@@ -191,6 +191,7 @@
     </CudaCompile>
     <CudaCompile Include="..\src\cuda_grayscale.cu" />
     <CudaCompile Include="..\src\cuda_init_freeform.cu" />
+    <CudaCompile Include="..\src\cuda_split.cu" />
     <CudaCompile Include="..\src\main.cu" />
   </ItemGroup>
   <ItemGroup>
