@@ -56,7 +56,8 @@ namespace freeform
 
 
     std::tuple< samples, patches  > inititialize_free_form(uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count);
-    void deform(const patches& p, const imaging::cuda_texture& grad, patches& deformed, thrust::device_vector<uint32_t>& stop );
+    patches split(const patches& p);
+    void    deform(const patches& p, const imaging::cuda_texture& grad, patches& deformed, thrust::device_vector<uint32_t>& stop );
     bool    converged(thrust::device_vector<uint32_t>& stop);
 
     void display( const imaging::cuda_texture& t, const patches& p );
@@ -123,11 +124,11 @@ int32_t main( int argc, char const* argv[] )
     //filter out the records that match the composite criteria
     std::chrono::steady_clock::time_point start1 = std::chrono::steady_clock::now();
 
-    auto center_image_x = 240;
-    auto center_image_y = 341;
+    auto center_image_x = 341;
+    auto center_image_y = 240;
     auto x = 341;
     auto y = 240;
-    auto radius = l2_norm(x - static_cast<float> ( center_image_x ) , y - static_cast<float> ( center_image_y ));
+    auto radius = 20;// l2_norm(x - static_cast<float> (center_image_x), y - static_cast<float> (center_image_y));
     auto patch_count = 10;
 
     auto init = freeform::inititialize_free_form( center_image_x, center_image_y, radius, patch_count);
@@ -137,14 +138,14 @@ int32_t main( int argc, char const* argv[] )
     auto deformed                  = std::get<1>(init);
     freeform::patches              old;
     thrust::device_vector<uint32_t> stop;
+    bool stop_iterations = false;
 
-    do
+    while (!stop_iterations)
     {
-        old = deformed;
-        //deformed = split( old );
-        
+        old = split(deformed);
         freeform::deform(old, canny, deformed, stop);
-    } while (!freeform::converged(stop));
+        stop_iterations = freeform::converged(stop);
+    }
 
 
     //display the results

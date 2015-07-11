@@ -43,7 +43,11 @@ namespace freeform
     {
         using namespace thrust;
         auto norm = reduce(stop.begin(), stop.end(), 0, plus<uint32_t>());
-        return norm >= 0.99 * stop.size();
+
+        float percent = static_cast<float>(norm) / static_cast<float>(stop.size());
+        auto r = percent > 0.80f;
+
+        return r;
     }
 }
 

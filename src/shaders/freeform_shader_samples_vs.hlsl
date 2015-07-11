@@ -38,8 +38,8 @@ vs_samples_output main(in vs_samples_input i)
     float x = o.x;
     
     //swap x and y to match the picture
-    o.x = o.y;
-    o.y = x;
+    //o.x = o.y;
+    //o.y = x;
 
     vs_samples_output r;
 
