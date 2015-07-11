@@ -345,10 +345,11 @@ namespace freeform
             dx = dx * g;
             dy = dy * g;
 
-            dx = 22.0f; //test to see if the gradient works
+            //dx = 22.0f; //test to see if the gradient works
 
-            float scale      = 2.0f;
-            float pixel_size = max( 2.0f / m_sampler.width(), 2.0f / m_sampler.height() );
+            
+            float pixel_size = max( 1.0f / m_sampler.width(), 1.0f / m_sampler.height() );
+            float scale      = 1.0f;// pixel_size * 5.0;
 
             point k1         = make_point(scale, scale);
             point k          = make_point(-scale * 1.1f, -scale * 1.1f);
@@ -358,6 +359,99 @@ namespace freeform
             point d1         = mad(k, grad, d0);
 
             return d1;
+        }
+    };
+
+    struct deform_points_kernel2
+    {
+        const   cuda::image_kernel_info m_sampler;
+        const   uint8_t*                m_grad;
+
+        deform_points_kernel2(const cuda::image_kernel_info& sampler, const uint8_t* grad) : m_sampler(sampler), m_grad(grad)
+        {
+
+        }
+
+        __device__ static inline float    compute_sobel(
+            float ul, // upper left
+            float um, // upper middle
+            float ur, // upper right
+            float ml, // middle left
+            float mm, // middle (unused)
+            float mr, // middle right
+            float ll, // lower left
+            float lm, // lower middle
+            float lr, // lower right
+            float& dx,
+            float& dy
+            )
+        {
+            dx = ur + 2 * mr + lr - ul - 2 * ml - ll;
+            dy = ul + 2 * um + ur - ll - 2 * lm - lr;
+
+            float  sum = static_cast<float> (abs(dx) + abs(dy));
+            return sum;
+        }
+
+        __device__ point operator() (const thrust::tuple < point, point> p)
+        {
+            using namespace cuda;
+
+            auto pt = thrust::get<0>(p);
+            auto normal = thrust::get<1>(p);
+
+            auto x = pt.x;
+            auto y = pt.y;
+
+            const uint8_t* pix00 = sample_2d< uint8_t, border_type::clamp >(m_grad, m_sampler, x - 1, y - 1);
+            const uint8_t* pix01 = sample_2d< uint8_t, border_type::clamp >(m_grad, m_sampler, x - 0, y - 1);
+            const uint8_t* pix02 = sample_2d< uint8_t, border_type::clamp >(m_grad, m_sampler, x + 1, y - 1);
+
+
+            const uint8_t* pix10 = sample_2d< uint8_t, border_type::clamp>(m_grad, m_sampler, x - 1, y);
+            const uint8_t* pix11 = sample_2d< uint8_t, border_type::clamp>(m_grad, m_sampler, x - 0, y);
+            const uint8_t* pix12 = sample_2d< uint8_t, border_type::clamp>(m_grad, m_sampler, x + 1, y);
+
+            const uint8_t* pix20 = sample_2d< uint8_t, border_type::clamp >(m_grad, m_sampler, x - 1, y + 1);
+            const uint8_t* pix21 = sample_2d< uint8_t, border_type::clamp >(m_grad, m_sampler, x - 0, y + 1);
+            const uint8_t* pix22 = sample_2d< uint8_t, border_type::clamp >(m_grad, m_sampler, x + 1, y + 1);
+
+            auto  u00 = *pix00;
+            auto  u01 = *pix01;
+            auto  u02 = *pix02;
+
+            auto  u10 = *pix10;
+            auto  u11 = *pix11;
+            auto  u12 = *pix12;
+
+            auto  u20 = *pix20;
+            auto  u21 = *pix21;
+            auto  u22 = *pix22;
+
+            auto mx = max(u00, u01);
+            mx = max(mx, u02);
+            mx = max(mx, u10);
+            mx = max(mx, u11);
+            mx = max(mx, u12);
+            mx = max(mx, u20);
+            mx = max(mx, u21);
+            mx = max(mx, u22);
+
+            point d0;
+            auto w = m_sampler.width();
+            auto h = m_sampler.height();
+
+            if ( mx > 250  || pt.x > (w - 5) || pt.y > ( h - 5) ) 
+            {  
+                d0 = pt;
+            }
+            else
+            {
+                auto k1 = make_point(1.0f, 1.0f);
+                d0 = mad(k1, normal, pt);
+            }
+
+            return d0;
         }
     };
 
@@ -439,7 +533,7 @@ namespace freeform
             
             auto b = make_zip_iterator(make_tuple(pts.begin(), normal_vectors.begin()));
             auto e = make_zip_iterator(make_tuple(pts.end(), normal_vectors.end()));
-            thrust::transform(b, e, resampled_points.begin(), deform_points_kernel(info, pixels) );
+            thrust::transform(b, e, resampled_points.begin(), deform_points_kernel2(info, pixels) );
         }
 
         //gather transformed samples again
@@ -449,12 +543,16 @@ namespace freeform
             auto b = resampled_points.begin();
             auto e = resampled_points.end();
 
-            auto zb = make_zip_iterator(make_tuple(b,   b + 1,  b + 2,  b + 3));
-            auto ze = make_zip_iterator(make_tuple(e,   e,      e,      e));
+            auto r0 = make_strided_range(b + 0, e, 4);
+            auto r1 = make_strided_range(b + 1, e, 4);
+            auto r2 = make_strided_range(b + 2, e, 4);
+            auto r3 = make_strided_range(b + 3, e, 4);
 
-            auto s  = make_strided_range(zb, ze, 4 );
+            auto zb = make_zip_iterator(make_tuple(r0.begin(), r1.begin(), r2.begin(), r3.begin()));
+            auto ze = make_zip_iterator(make_tuple(r0.end(),    r1.end(),   r2.end(),   r3.end()));
 
-            thrust::transform(s.begin(), s.end(), patches.begin(), gather_samples_kernel());
+
+            thrust::transform(zb, ze, patches.begin(), gather_samples_kernel());
         }
 
         return patches;

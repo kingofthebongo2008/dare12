@@ -267,6 +267,9 @@
     <CudaCompile Include="..\src\cuda_deform.cu">
       <Filter>source Files</Filter>
     </CudaCompile>
+    <CudaCompile Include="..\src\cuda_converged.cu">
+      <Filter>source Files</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\include\gx\shaders\gx_shader_full_screen_vs.hlsl" />
