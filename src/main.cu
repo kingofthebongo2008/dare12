@@ -64,11 +64,6 @@ namespace freeform
     void display(const imaging::cuda_texture& t,  const samples& p );
 }
 
-static inline float l2_norm(float x, float y)
-{
-    return sqrtf(x * x + y * y);
-}
-
 struct lexicographical_sorter
 {
     __device__ bool operator()(freeform::tab a0, freeform::tab b0) const
@@ -128,7 +123,7 @@ int32_t main( int argc, char const* argv[] )
     auto center_image_y = 240;
     auto x = 341;
     auto y = 240;
-    auto radius = 20;// l2_norm(x - static_cast<float> (center_image_x), y - static_cast<float> (center_image_y));
+    auto radius = 20;
     auto patch_count = 10;
 
     auto init = freeform::inititialize_free_form( center_image_x, center_image_y, radius, patch_count);
