@@ -294,7 +294,7 @@ namespace freeform
             return sum;
         }
 
-        __device__ point operator() (const thrust::tuple < point, point> p)
+        __device__ thrust::tuple<point, uint8_t> operator() (const thrust::tuple < point, point> p)
         {
             using namespace cuda;
 
@@ -358,7 +358,7 @@ namespace freeform
             point d0         = mad(k1, normal, pt);
             point d1         = mad(k, grad, d0);
 
-            return d1;
+            return thrust::make_tuple( d1, 1 );
         }
     };
 

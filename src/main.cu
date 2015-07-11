@@ -57,24 +57,13 @@ namespace freeform
 
     std::tuple< samples, patches  > inititialize_free_form(uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count);
     patches split(const patches& p);
+    patches flip( patches& p);
     void    deform(const patches& p, const imaging::cuda_texture& grad, patches& deformed, thrust::device_vector<uint32_t>& stop );
     bool    converged(thrust::device_vector<uint32_t>& stop);
 
     void display( const imaging::cuda_texture& t, const patches& p );
     void display(const imaging::cuda_texture& t,  const samples& p );
 }
-
-struct lexicographical_sorter
-{
-    __device__ bool operator()(freeform::tab a0, freeform::tab b0) const
-    {
-        math::float4 a = a0.m_aabb;
-        math::float4 b = b0.m_aabb;
-
-        return a.x < b.x || (a.x == b.x && (a.y < b.y || (a.y = b.y && (a.z < b.z || (a.z == b.z && a.w < b.w)))));
-    }
-};
-
 
 inline std::ostream& operator<<(std::ostream& s, const float4& p)
 {
@@ -121,8 +110,6 @@ int32_t main( int argc, char const* argv[] )
 
     auto center_image_x = 341;
     auto center_image_y = 240;
-    auto x = 341;
-    auto y = 240;
     auto radius = 20;
     auto patch_count = 10;
 
@@ -138,6 +125,7 @@ int32_t main( int argc, char const* argv[] )
     while (!stop_iterations)
     {
         old = split(deformed);
+        old = flip(old);
         freeform::deform(old, canny, deformed, stop);
         stop_iterations = freeform::converged(stop);
     }

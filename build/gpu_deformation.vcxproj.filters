@@ -273,6 +273,9 @@
     <CudaCompile Include="..\src\cuda_split.cu">
       <Filter>source Files</Filter>
     </CudaCompile>
+    <CudaCompile Include="..\src\cuda_flip.cu">
+      <Filter>source Files</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\include\gx\shaders\gx_shader_full_screen_vs.hlsl" />

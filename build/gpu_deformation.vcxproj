@@ -189,6 +189,7 @@
     <CudaCompile Include="..\src\cuda_deform.cu">
       <GPUDebugInfo Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</GPUDebugInfo>
     </CudaCompile>
+    <CudaCompile Include="..\src\cuda_flip.cu" />
     <CudaCompile Include="..\src\cuda_grayscale.cu" />
     <CudaCompile Include="..\src\cuda_init_freeform.cu" />
     <CudaCompile Include="..\src\cuda_split.cu" />

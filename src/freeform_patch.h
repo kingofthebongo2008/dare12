@@ -53,31 +53,6 @@ namespace freeform
     }
 
 #if defined( __CUDACC__ )
-    struct tab
-    {
-        uint32_t        m_index;
-        math::float4    m_aabb;
-
-        __device__ __host__ tab()
-        {
-
-        }
-
-        __device__ __host__ tab( uint32_t index, math::float4 aabb ) :
-            m_index(index)
-            , m_aabb( aabb )
-        {
-        }
-    };
-
-    __device__ inline bool operator== (const tab& a, const tab& b)
-    {
-        return a.m_index == b.m_index && a.m_aabb.x == b.m_aabb.x && a.m_aabb.y == b.m_aabb.y && a.m_aabb.z == b.m_aabb.z && a.m_aabb.w == b.m_aabb.w;
-    }
-
-    typedef thrust::device_vector< tab>             tabs;
-
-
     inline std::ostream& operator<<(std::ostream& s, const patch& p)
     {
         s << "x: " << p.x0 << " " << p.x1 << " " << p.x2 << " " << p.x3 << std::endl;
@@ -88,12 +63,6 @@ namespace freeform
     inline std::ostream& operator<<(std::ostream& s, const point& p)
     {
         s << "x: " << p.x << " " << p.y << std::endl;
-        return s;
-    }
-
-    inline std::ostream& operator<<(std::ostream& s, const tab& p)
-    {
-        s << p.m_index << "\t" << p.m_aabb.x << "\t" << p.m_aabb.y << "\t" << p.m_aabb.z << "\t" << p.m_aabb.w <<  std::endl;
         return s;
     }
 
