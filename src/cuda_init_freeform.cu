@@ -44,7 +44,7 @@ namespace freeform
             return m_center_y + m_radius * sinf((i + step) * m_step);
         }
 
-        __device__ thrust::tuple< sample, patch, tab > operator() (uint32_t i) const
+        __device__ thrust::tuple< sample, patch > operator() (uint32_t i) const
         {
             float x0 = sample_x(3 * i, 0);
             float x1 = sample_x(3 * i, 1);
@@ -60,18 +60,7 @@ namespace freeform
 
             //obtain patch control points from sampled points
             auto p1 = interpolate_curve( p0 );
-
-            float min_x = min4(p1.x0, p1.x1, p1.x2, p1.x3);
-            float min_y = min4(p1.y0, p1.y1, p1.y2, p1.y3);
-            float max_x = max4(p1.x0, p1.x1, p1.x2, p1.x3);
-            float max_y = max4(p1.y0, p1.y1, p1.y2, p1.y3);
-
-            float4  tb = math::set(min_x, max_x, min_y, max_y );
-            
-            tab     t(i, tb);
-
-
-            return thrust::make_tuple ( p0, p1, t );
+            return thrust::make_tuple ( p0, p1 );
         }
     };
 
@@ -83,7 +72,6 @@ namespace freeform
 
         samples n;
         patches np;
-        tabs    tabs;
 
         auto pi = 3.1415926535f;
         auto pas = 2 * pi / patch_count;
@@ -93,12 +81,11 @@ namespace freeform
 
         n.resize( iterations / 3 );
         np.resize(iterations / 3);
-        tabs.resize(iterations / 3);
 
 
         auto begin  = thrust::make_counting_iterator(0);
         auto end    = begin + iterations / 3;
-        auto o      = thrust::make_zip_iterator(thrust::make_tuple(n.begin(), np.begin(), tabs.begin()));
+        auto o      = thrust::make_zip_iterator(thrust::make_tuple(n.begin(), np.begin()));
 
         thrust::transform(begin, end, o, generate_patch(static_cast<float> (center_image_x), static_cast<float> (center_image_y), radius, pas_pt_patch));
         return std::move(std::make_tuple(std::move(n), std::move(np) )); 
