@@ -161,18 +161,18 @@ namespace freeform
 
     __device__ inline bool intersect_bounding_boxes(math::float4 a, math::float4 b )
     {
-        //a and b contain: min_x, max_x, min_y, max_y for an aabb
+        //a and b contain: min_x, min_y, max_x, max_y for an aabb
 
         float x1 = math::get_x(a);
-        float y1 = math::get_z(a);
+        float y1 = math::get_y(a);
 
-        float x2 = math::get_y(a);
+        float x2 = math::get_z(a);
         float y2 = math::get_w(a);
 
         float x3 = math::get_x(b);
-        float y3 = math::get_z(b);
+        float y3 = math::get_y(b);
 
-        float x4 = math::get_y(b);
+        float x4 = math::get_z(b);
         float y4 = math::get_w(b);
 
         if (x2 < x3)

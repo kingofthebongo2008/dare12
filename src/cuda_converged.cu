@@ -46,6 +46,11 @@ namespace freeform
 
         float percent = static_cast<float>(norm) / static_cast<float>(stop.size());
         auto r = percent > 0.80f;
+        
+        if (stop.size() > 2000)
+        {
+            return true;
+        }
 
         return r;
     }
