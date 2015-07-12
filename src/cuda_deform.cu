@@ -357,7 +357,7 @@ namespace freeform
             }
             else
             {
-                auto k1 = make_point(1.0f, 1.0f);   //adjust this for faster convergence
+                auto k1 = make_point(1.5f, 1.5f);   //adjust this for faster convergence
                 d0 = mad(k1, normal, pt);
             }
 
@@ -367,7 +367,7 @@ namespace freeform
 
     struct gather_samples_kernel
     {
-        __device__ patch operator() (const thrust::tuple< point, point, point, point > & pt )
+        __device__ patch operator() (const thrust::tuple< point, point, point, point, point, point, point, point, patch > & pt )
         {
             sample s;
 
@@ -377,20 +377,41 @@ namespace freeform
             point r2 = thrust::get<2>(pt);
             point r3 = thrust::get<3>(pt);
 
-            //form delta of moved points
-            s.x0 = r0.x;
-            s.x1 = r1.x;
-            s.x2 = r2.x;
-            s.x3 = r3.x;
+            point p0 = thrust::get<4>(pt);
+            point p1 = thrust::get<5>(pt);
+            point p2 = thrust::get<6>(pt);
+            point p3 = thrust::get<7>(pt);
 
-            s.y0 = r0.y;
-            s.y1 = r1.y;
-            s.y2 = r2.y;
-            s.y3 = r3.y;
+            //form delta of moved points
+            s.x0 = r0.x - p0.x;
+            s.x1 = r1.x - p1.x;
+            s.x2 = r2.x - p2.x;
+            s.x3 = r3.x - p3.x;
+
+            s.y0 = r0.y - p0.y;
+            s.y1 = r1.y - p1.y;
+            s.y2 = r2.y - p2.y;
+            s.y3 = r3.y - p3.y;
 
             //obtain delta of moved control points
             patch r = interpolate_curve(s);
-            return r;
+
+            patch p = thrust::get<8>(pt);
+
+            patch res;
+
+            res.x0 = p.x0 + r.x0;
+            res.x1 = p.x1 + r.x1;
+            res.x2 = p.x2 + r.x2;
+            res.x3 = p.x3 + r.x3;
+
+            res.y0 = p.y0 + r.y0;
+            res.y1 = p.y1 + r.y1;
+            res.y2 = p.y2 + r.y2;
+            res.y3 = p.y3 + r.y3;
+
+
+            return res;
         }
     };
 
@@ -587,9 +608,16 @@ namespace freeform
             auto r2 = make_strided_range(b + 2, e, 4);
             auto r3 = make_strided_range(b + 3, e, 4);
 
+            auto b0 = pts.begin();
+            auto e0 = pts.end();
 
-            auto zb = make_zip_iterator(make_tuple(r0.begin(), r1.begin(), r2.begin(), r3.begin() ));
-            auto ze = make_zip_iterator(make_tuple(r0.end(), r1.end(), r2.end(), r3.end()));
+            auto p0 = make_strided_range(b0 + 0, e0, 4);
+            auto p1 = make_strided_range(b0 + 1, e0, 4);
+            auto p2 = make_strided_range(b0 + 2, e0, 4);
+            auto p3 = make_strided_range(b0 + 3, e0, 4);
+
+            auto zb = make_zip_iterator(make_tuple(r0.begin(), r1.begin(), r2.begin(), r3.begin(), p0.begin(), p1.begin(), p2.begin(), p3.begin(), p.begin()));
+            auto ze = make_zip_iterator(make_tuple(r0.end(), r1.end(), r2.end(), r3.end(), p0.end(), p1.end(), p2.end(), p3.end(), p.end()));
 
             thrust::transform(zb, ze, control_points.begin(), gather_samples_kernel());
         }
