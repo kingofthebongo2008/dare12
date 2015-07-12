@@ -99,7 +99,7 @@ namespace freeform
     patches flip(   patches& p  )
     {
         return p;
-        /*
+        
         using namespace thrust;
 
         auto s = p.size();
@@ -107,6 +107,7 @@ namespace freeform
         
 
         sort(p.begin(), p.end(), lexicographical_sorter());
+
         collision.resize( p.size() );
 
         auto b = make_counting_iterator(0);
@@ -148,11 +149,10 @@ namespace freeform
         }
 
         patches r;
-        r.resize(outside.size() +inside.size() );
+        r.resize(outside.size() + inside.size() );
         copy(outside.begin(), outside.end(), r.begin());
         copy(inside.begin(), inside.end(),  r.begin() + outside.size() );
         return r;
-        */
     }
 }
 

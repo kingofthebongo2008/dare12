@@ -61,14 +61,14 @@ namespace freeform
                 m_patches[old + 1] = g5;
 
                 //store the index number, so we can sort later to maintain the order
-                m_keys[old] = key;
-                m_keys[old + 1] = key;
+                m_keys[old] =  key *10 + 1;
+                m_keys[old + 1] = key* 10 + 2;
             }
             else
             {
                 auto old = atomicAdd(m_element_count.get(), 1);
                 m_patches[old] = p;
-                m_keys[old] = key;
+                m_keys[old] = key *10;
             }
         }
     };

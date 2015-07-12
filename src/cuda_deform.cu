@@ -598,7 +598,7 @@ namespace freeform
 
 
         deformed.resize( s.size() );
-        copy(control_points.begin(), control_points.end(), deformed.begin());
+        //copy(control_points.begin(), control_points.end(), deformed.begin());
         
         //print<patches, patch>(control_points);
         //average points on the boundaries between patches, since they point in different directions
@@ -608,7 +608,7 @@ namespace freeform
         {
             auto b = make_counting_iterator(0);
             auto e = b + s.size();
-        //    thrust::for_each(b, e, average_patches(&control_points[0], &deformed[0], s.size()));
+            thrust::for_each(b, e, average_patches(&control_points[0], &deformed[0], s.size()));
         }
 
         if (iterations == 133)
