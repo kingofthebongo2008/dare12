@@ -27,7 +27,7 @@ vs_samples_output main(in vs_samples_input i)
 {
     float2 o;
 
-    float2 transform = float2 (1.0f / m_image_height, 1.0f / m_image_width);
+    float2 transform = float2 (1.0f / m_image_width, 1.0f / m_image_height);
 
     o     = i.m_position * transform;
 
@@ -37,10 +37,6 @@ vs_samples_output main(in vs_samples_input i)
 
     float x = o.x;
     
-    //swap x and y to match the picture
-    //o.x = o.y;
-    //o.y = x;
-
     vs_samples_output r;
 
     r.m_position = float4(o, 0.0f, 1.0f);
