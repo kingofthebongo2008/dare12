@@ -98,7 +98,7 @@ namespace freeform
         auto b = make_zip_iterator(make_tuple(p.begin(), cb));
         auto e = make_zip_iterator(make_tuple(p.end(), ce));
 
-        for_each(b, e, multi_eval_patches2_kernel(32, &n2[0], &element_count[0], &keys[0]));
+        for_each(b, e, multi_eval_patches2_kernel(16, &n2[0], &element_count[0], &keys[0]));
 
         //fetch the number of new patches that were added
         auto elements = element_count.front();

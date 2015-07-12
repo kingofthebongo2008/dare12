@@ -155,6 +155,7 @@
     <ClInclude Include="..\include\os\windows\com_ptr.h" />
     <ClInclude Include="..\include\os\windows\dxgi_pointers.h" />
     <ClInclude Include="..\include\os\windows\wnd_application.h" />
+    <ClInclude Include="..\src\cuda_aabb.h" />
     <ClInclude Include="..\src\cuda_helper.h" />
     <ClInclude Include="..\src\cuda_imaging.h" />
     <ClInclude Include="..\src\cuda_memory_helper.h" />
@@ -187,11 +188,12 @@
     <CudaCompile Include="..\src\cuda_canny.cu" />
     <CudaCompile Include="..\src\cuda_converged.cu" />
     <CudaCompile Include="..\src\cuda_deform.cu">
-      <GPUDebugInfo Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">false</GPUDebugInfo>
+      <GPUDebugInfo Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">true</GPUDebugInfo>
     </CudaCompile>
     <CudaCompile Include="..\src\cuda_flip.cu" />
     <CudaCompile Include="..\src\cuda_grayscale.cu" />
     <CudaCompile Include="..\src\cuda_init_freeform.cu" />
+    <CudaCompile Include="..\src\cuda_samples.cu" />
     <CudaCompile Include="..\src\cuda_split.cu" />
     <CudaCompile Include="..\src\main.cu" />
   </ItemGroup>

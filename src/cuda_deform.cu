@@ -3,6 +3,7 @@
 #include "freeform_patch.h"
 
 #include <thrust/transform.h>
+#include <thrust/sort.h>
 
 #include <math/math_vector.h>
 
@@ -11,6 +12,7 @@
 #include "cuda_imaging.h"
 #include "cuda_strided_range.h"
 #include "cuda_print_utils.h"
+#include "cuda_aabb.h"
 
 #include <algorithm>
 
@@ -35,12 +37,31 @@ namespace freeform
         return c;
     }
 
+    __device__ inline point sub(point a, point b)
+    {
+        point c;
+
+        c.x = a.x - b.x;
+        c.y = a.y - b.y;
+        return c;
+    }
+
     __device__ inline point mul(point a, point b)
     {
         point c;
 
         c.x = a.x * b.x;
         c.y = a.y * b.y;
+        return c;
+    }
+
+
+    __device__ inline point mul(float s, point b)
+    {
+        point c;
+
+        c.x = s * b.x;
+        c.y = s * b.y;
         return c;
     }
 
@@ -51,6 +72,14 @@ namespace freeform
         d.x = a.x * b.x + c.x;
         d.y = a.y * b.y + c.y;
         return d;
+    }
+
+    __device__ inline point normalize(point a)
+    {
+        float magnitude = a.x * a.x + a.y * a.y;
+        float s = 1.0f / sqrtf(magnitude);
+
+        return mul(s, a);
     }
 
     __device__ inline patch compute_derivatives(const patch& p)
@@ -241,127 +270,6 @@ namespace freeform
         }
     };
 
-    __device__ inline void voisinage(float x, float y, int32_t v1[], int32_t v2[])
-    {
-        int32_t x1 = static_cast<int32_t> (floorf(x));  //todo cast to int
-        int32_t y1 = static_cast<int32_t> (floorf(y));  //todo cast to int
-
-        //% Returns the "pixelique" coordinates of the point neighborhood( its size is 9 * 9 )? 8x8?
-
-        const int32_t indices_v1[8] = { -1, -1, -1, 0, 0, +1, +1, +1 };
-        const int32_t indices_v2[8] = { -1, 0, 1, -1, 1, -1, 0, +1 };
-
-        for (uint32_t i = 0; i < 8; ++i)
-        {
-            v1[i] = x1 + indices_v1[i];
-        }
-
-        for (uint32_t i = 0; i < 8; ++i)
-        {
-            v2[i] = y1 + indices_v2[i];
-        }
-    }
-
-
-    struct deform_points_kernel
-    {
-        const   cuda::image_kernel_info m_sampler;
-        const   uint8_t*                m_grad;
-
-        deform_points_kernel(   const cuda::image_kernel_info& sampler, const uint8_t* grad ) : m_sampler(sampler), m_grad(grad)
-        {
-
-        }
-
-        __device__ static inline float    compute_sobel(
-            float ul, // upper left
-            float um, // upper middle
-            float ur, // upper right
-            float ml, // middle left
-            float mm, // middle (unused)
-            float mr, // middle right
-            float ll, // lower left
-            float lm, // lower middle
-            float lr, // lower right
-            float& dx,
-            float& dy
-            )
-        {
-            dx = ur + 2 * mr + lr - ul - 2 * ml - ll;
-            dy   = ul + 2 * um + ur - ll - 2 * lm - lr;
-
-            float  sum = static_cast<float> (abs(dx) + abs(dy));
-            return sum;
-        }
-
-        __device__ thrust::tuple<point, uint8_t> operator() (const thrust::tuple < point, point> p)
-        {
-            using namespace cuda;
-
-            auto pt = thrust::get<0>(p);
-            auto normal = thrust::get<1>(p);
-
-            auto x = pt.x;
-            auto y = pt.y;
-
-            const uint8_t* pix00 = sample_2d< uint8_t, border_type::clamp >(m_grad, m_sampler, x - 1, y - 1);
-            const uint8_t* pix01 = sample_2d< uint8_t, border_type::clamp >(m_grad, m_sampler, x - 0, y - 1);
-            const uint8_t* pix02 = sample_2d< uint8_t, border_type::clamp >(m_grad, m_sampler, x + 1, y - 1);
-
-
-            const uint8_t* pix10 = sample_2d< uint8_t, border_type::clamp>(m_grad, m_sampler, x - 1, y);
-            const uint8_t* pix11 = sample_2d< uint8_t, border_type::clamp>(m_grad, m_sampler, x - 0, y);
-            const uint8_t* pix12 = sample_2d< uint8_t, border_type::clamp>(m_grad, m_sampler, x + 1, y);
-
-            const uint8_t* pix20 = sample_2d< uint8_t, border_type::clamp >(m_grad, m_sampler, x - 1, y + 1);
-            const uint8_t* pix21 = sample_2d< uint8_t, border_type::clamp >(m_grad, m_sampler, x - 0, y + 1);
-            const uint8_t* pix22 = sample_2d< uint8_t, border_type::clamp >(m_grad, m_sampler, x + 1, y + 1);
-
-            float c   = 1.0f / 255.0f;
-
-            auto  u00 = *pix00 * c;
-            auto  u01 = *pix01 * c;
-            auto  u02 = *pix02 * c;
-
-            auto  u10 = *pix10 * c;
-            auto  u11 = *pix11 * c;
-            auto  u12 = *pix12 * c;
-
-            auto  u20 = *pix20 * c;
-            auto  u21 = *pix21 * c;
-            auto  u22 = *pix22 * c;
-
-            float dx = 0.0f;
-            float dy = 0.0f;
-
-            auto  r = compute_sobel(
-                u00, u01, u02,
-                u10, u11, u12,
-                u20, u21, u22, dx, dy
-                );
-
-            //normalize the gradient
-            float g = 1.0f / (r + 0.0001f);
-            dx = dx * g;
-            dy = dy * g;
-
-            //dx = 22.0f; //test to see if the gradient works
-
-            
-            float pixel_size = max( 1.0f / m_sampler.width(), 1.0f / m_sampler.height() );
-            float scale      = 1.0f;// pixel_size * 5.0;
-
-            point k1         = make_point(scale, scale);
-            point k          = make_point(-scale * 1.1f, -scale * 1.1f);
-
-            point grad       = make_point(dx, dy);
-            point d0         = mad(k1, normal, pt);
-            point d1         = mad(k, grad, d0);
-
-            return thrust::make_tuple( d1, 1 );
-        }
-    };
-
     struct deform_points_kernel2
     {
         const   cuda::image_kernel_info m_sampler;
@@ -449,7 +357,7 @@ namespace freeform
             }
             else
             {
-                auto k1 = make_point(1.5f, 1.5f);   //adjust this for faster convergence
+                auto k1 = make_point(1.0f, 1.0f);   //adjust this for faster convergence
                 d0 = mad(k1, normal, pt);
             }
 
@@ -459,30 +367,152 @@ namespace freeform
 
     struct gather_samples_kernel
     {
-        __device__ patch operator() (const thrust::tuple< point, point, point, point> & pt)
+        __device__ patch operator() (const thrust::tuple< point, point, point, point > & pt )
         {
             sample s;
 
-            point p0 = thrust::get<0>(pt);
-            point p1 = thrust::get<1>(pt);
-            point p2 = thrust::get<2>(pt);
-            point p3 = thrust::get<3>(pt);
+            //resampled points
+            point r0 = thrust::get<0>(pt);
+            point r1 = thrust::get<1>(pt);
+            point r2 = thrust::get<2>(pt);
+            point r3 = thrust::get<3>(pt);
 
-            s.x0 = p0.x;
-            s.x1 = p1.x;
-            s.x2 = p2.x;
-            s.x3 = p3.x;
+            //form delta of moved points
+            s.x0 = r0.x;
+            s.x1 = r1.x;
+            s.x2 = r2.x;
+            s.x3 = r3.x;
 
-            s.y0 = p0.y;
-            s.y1 = p1.y;
-            s.y2 = p2.y;
-            s.y3 = p3.y;
+            s.y0 = r0.y;
+            s.y1 = r1.y;
+            s.y2 = r2.y;
+            s.y3 = r3.y;
 
-            patch p = interpolate_curve(s);
-
-            return p;
+            //obtain delta of moved control points
+            patch r = interpolate_curve(s);
+            return r;
         }
     };
+
+    struct average_patches
+    {
+        thrust::device_ptr< patch > m_patches_in;
+        thrust::device_ptr< patch > m_patches_out;
+        uint32_t                    m_count;
+
+        average_patches(thrust::device_ptr<patch> patches_in, thrust::device_ptr<patch> patches_out, uint32_t count) :
+            m_patches_in(patches_in)
+            , m_patches_out(patches_out)
+            , m_count(count)
+        {
+
+        }
+
+        __device__ void operator() (uint32_t i) const
+        {
+            auto i0 = i;
+            auto i1 = i + 1;
+            
+         
+            if (i1 == m_count)
+            {
+                i1 = 0;
+            }
+
+            patch p0 = m_patches_in[i0];
+            patch p1 = m_patches_in[i1];
+
+            patch r0 = p0;
+            patch r1 = p1;
+
+            r0.x3 = r1.x0;
+            r0.y3 = r1.y0;
+
+            //copy the modified patch to stick the control points together
+            m_patches_out[i0] = r0;
+        }
+    };
+
+    std::vector<patch> create_vector(const thrust::device_vector<patch>& p)
+    {
+        using namespace thrust;
+        host_vector<patch> h;
+        std::vector<patch> h1;
+
+        h.resize(p.size());
+        h1.resize(p.size());
+
+        copy(p.begin(), p.end(), h.begin());
+
+        std::copy(h.begin(), h.end(), h1.begin());
+
+        return h1;
+    }
+
+    std::vector<patch> create_vector(const std::vector<patch>& p0, const std::vector<patch>& p1)
+    {
+        std::vector<patch> rv;
+
+        rv.resize(p0.size());
+
+        for (auto i = 0; i < p0.size(); ++i)
+        {
+            patch a = p0[i];
+            patch b = p1[i];
+
+
+            patch r;
+
+            r.x0 = a.x0 - b.x0;
+            r.x1 = a.x1 - b.x1;
+            r.x2 = a.x2 - b.x2;
+            r.x3 = a.x3 - b.x3;
+
+            r.y0 = a.y0 - b.y0;
+            r.y1 = a.y1 - b.y1;
+            r.y2 = a.y2 - b.y2;
+            r.y3 = a.y3 - b.y3;
+
+            rv[i] = r;
+        }
+
+        return rv;
+    }
+
+    float abs_diff(const std::vector<patch>& p0)
+    {
+        float maximum = 0.0f;
+
+        for (auto i = 0; i < p0.size(); ++i)
+        {
+            patch r = p0[i];
+
+            auto a0 = abs(r.x0);
+            auto a1 = abs(r.x1);
+            auto a2 = abs(r.x2);
+            auto a3 = abs(r.x3);
+
+            auto b0 = abs(r.y0);
+            auto b1 = abs(r.y1);
+            auto b2 = abs(r.y2);
+            auto b3 = abs(r.y3);
+
+            auto m = std::max(a0, a1);
+
+            m = std::max(m, a2);
+            m = std::max(m, a3);
+
+            auto n = std::max(b0, b1);
+
+            n = std::max(n, b2);
+            n = std::max(n, b3);
+
+            maximum = std::max(maximum, std::max(m, n));
+
+        }
+
+        return maximum;
+    }
 
     //sample the curve and obtain patches through curve interpolation as in the paper
     void deform( const patches& p, const imaging::cuda_texture& grad, patches& deformed, thrust::device_vector<uint32_t>& stop)
@@ -510,7 +540,8 @@ namespace freeform
             thrust::for_each(b, e, scatter_normals_kernel());
         }
 
-        
+
+
         //convert patches to points for easier gradient sampling
         points  pts;
         pts.resize(s.size() * 4);
@@ -523,14 +554,12 @@ namespace freeform
             auto b = make_zip_iterator(make_tuple(p.begin(), r0.begin(), r1.begin(), r2.begin(), r3.begin()));
             auto e = make_zip_iterator(make_tuple(p.end(), r0.end(), r1.end(), r2.end(), r3.end()));
             thrust::for_each(b, e, scatter_points_kernel());
-            
         }
+
 
         //deform samples with the image gradient
         points resampled_points;
         resampled_points.resize(s.size() * 4);
-
-
         stop.resize( s.size() * 4);
         {
             auto info = ::cuda::create_image_kernel_info(grad);
@@ -546,8 +575,10 @@ namespace freeform
         }
 
         //gather transformed samples again
-        deformed.resize(s.size());
+        patches control_points;
+        control_points.resize(s.size());
         {
+            //resampled points
             auto b = resampled_points.begin();
             auto e = resampled_points.end();
 
@@ -556,12 +587,44 @@ namespace freeform
             auto r2 = make_strided_range(b + 2, e, 4);
             auto r3 = make_strided_range(b + 3, e, 4);
 
-            auto zb = make_zip_iterator(make_tuple(r0.begin(), r1.begin(), r2.begin(), r3.begin()));
-            auto ze = make_zip_iterator(make_tuple(r0.end(),    r1.end(),   r2.end(),   r3.end()));
 
+            auto zb = make_zip_iterator(make_tuple(r0.begin(), r1.begin(), r2.begin(), r3.begin() ));
+            auto ze = make_zip_iterator(make_tuple(r0.end(), r1.end(), r2.end(), r3.end()));
 
-            thrust::transform(zb, ze, deformed.begin(), gather_samples_kernel());
+            thrust::transform(zb, ze, control_points.begin(), gather_samples_kernel());
         }
+
+        extern uint32_t iterations;
+
+
+        deformed.resize( s.size() );
+        copy(control_points.begin(), control_points.end(), deformed.begin());
+        
+        //print<patches, patch>(control_points);
+        //average points on the boundaries between patches, since they point in different directions
+        
+
+
+        {
+            auto b = make_counting_iterator(0);
+            auto e = b + s.size();
+        //    thrust::for_each(b, e, average_patches(&control_points[0], &deformed[0], s.size()));
+        }
+
+        if (iterations == 133)
+        {
+            auto points = create_vector(control_points);
+            auto points2 = create_vector(deformed);
+
+            auto diff = create_vector(points, points2);
+            auto abs = abs_diff(diff);
+
+
+            //__debugbreak();
+
+        }
+
+        return;
 
     }
     

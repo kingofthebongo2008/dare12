@@ -36,6 +36,8 @@ static void initialize_cuda()
     }
         , []()->void
     {
+        void* a;
+        cudaMalloc(&a, 20);
 
     });
 }
@@ -60,6 +62,8 @@ namespace freeform
     patches flip( patches& p);
     void    deform(const patches& p, const imaging::cuda_texture& grad, patches& deformed, thrust::device_vector<uint32_t>& stop );
     bool    converged(thrust::device_vector<uint32_t>& stop);
+
+    samples sample_patches(const patches& p);
 
     void display( const imaging::cuda_texture& t, const patches& p );
     void display(const imaging::cuda_texture& t,  const samples& p );
@@ -111,7 +115,7 @@ int32_t main( int argc, char const* argv[] )
     auto center_image_x = 341;
     auto center_image_y = 240;
     auto radius = 20;
-    auto patch_count = 20;
+    auto patch_count = 10;
 
     auto init = freeform::inititialize_free_form( center_image_x, center_image_y, radius, patch_count);
 
@@ -135,7 +139,7 @@ int32_t main( int argc, char const* argv[] )
 
     //display the results
     //freeform::display(gray, std::get<1>(init));
-    freeform::display(gray, deformed);
+    freeform::display(gray, freeform::sample_patches(deformed));
 
     return 0;
 

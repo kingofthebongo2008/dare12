@@ -247,6 +247,9 @@
     <ClInclude Include="..\src\cuda_print_utils.h">
       <Filter>header files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cuda_aabb.h">
+      <Filter>header files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="readMe.txt" />
@@ -274,6 +277,9 @@
       <Filter>source Files</Filter>
     </CudaCompile>
     <CudaCompile Include="..\src\cuda_flip.cu">
+      <Filter>source Files</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\src\cuda_samples.cu">
       <Filter>source Files</Filter>
     </CudaCompile>
   </ItemGroup>

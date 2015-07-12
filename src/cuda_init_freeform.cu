@@ -5,7 +5,7 @@
 
 #include "freeform_patch.h"
 
-
+#include "cuda_print_utils.h"
 
 
 
@@ -88,6 +88,7 @@ namespace freeform
         auto o      = thrust::make_zip_iterator(thrust::make_tuple(n.begin(), np.begin()));
 
         thrust::transform(begin, end, o, generate_patch(static_cast<float> (center_image_x), static_cast<float> (center_image_y), radius, pas_pt_patch));
+
         return std::move(std::make_tuple(std::move(n), std::move(np) )); 
     }
 }
