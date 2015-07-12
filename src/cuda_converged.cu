@@ -45,7 +45,7 @@ namespace freeform
         auto norm = reduce(stop.begin(), stop.end(), 0, plus<uint32_t>());
 
         float percent = static_cast<float>(norm) / static_cast<float>(stop.size());
-        auto r = percent > 0.80f;
+        auto r = percent > 0.99f;
         
         if (stop.size() > 2000)
         {

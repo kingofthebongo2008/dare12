@@ -79,7 +79,7 @@ namespace freeform
         auto b = p.begin();
         auto e = p.end();
 
-        thrust::for_each(b, e, multi_eval_patches2_kernel(13, &n2[0], &element_count[0]));
+        thrust::for_each(b, e, multi_eval_patches2_kernel(45, &n2[0], &element_count[0]));
 
         auto elements = element_count.front();
 

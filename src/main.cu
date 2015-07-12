@@ -111,7 +111,7 @@ int32_t main( int argc, char const* argv[] )
     auto center_image_x = 341;
     auto center_image_y = 240;
     auto radius = 20;
-    auto patch_count = 10;
+    auto patch_count = 20;
 
     auto init = freeform::inititialize_free_form( center_image_x, center_image_y, radius, patch_count);
 
@@ -130,6 +130,8 @@ int32_t main( int argc, char const* argv[] )
         stop_iterations = freeform::converged(stop);
     }
 
+    std::chrono::steady_clock::time_point end1 = std::chrono::steady_clock::now();
+    std::cout << "Filtering on device took: " << std::chrono::duration_cast<std::chrono::milliseconds>(end1 - start1).count() << " ms" << std::endl;
 
     //display the results
     //freeform::display(gray, std::get<1>(init));

@@ -442,14 +442,14 @@ namespace freeform
             auto h = m_sampler.height();
             uint32_t stop = 0;
 
-            if ( mx > 250  || pt.x > (w - 5) || pt.y > ( h - 5) ) 
+            if ( mx > 250  || pt.x > (w - 4) || pt.y > ( h - 4) ) 
             {  
                 d0 = pt;
                 stop = 1;
             }
             else
             {
-                auto k1 = make_point(1.0f, 1.0f);
+                auto k1 = make_point(1.5f, 1.5f);   //adjust this for faster convergence
                 d0 = mad(k1, normal, pt);
             }
 

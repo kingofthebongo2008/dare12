@@ -48,12 +48,12 @@ namespace freeform
         }
     };
 
-    struct collide_kernel
+    struct collide_kernel_aabb
     {
         uint32_t                    m_n;
         thrust::device_ptr< patch>  m_patches;
 
-        collide_kernel(uint32_t n, thrust::device_ptr< patch>  patches) :m_n(n), m_patches(patches)
+        collide_kernel_aabb(uint32_t n, thrust::device_ptr< patch>  patches) :m_n(n), m_patches(patches)
         {
 
         }
@@ -73,7 +73,30 @@ namespace freeform
         __device__ bool operator() (uint32_t i) const
         {
             patch p0 = m_patches[i];
-            uint32_t j;
+            patch p1 = m_patches[i + 1];
+            return collide(p0, p1);
+        }
+    };
+
+    struct collide_kernel
+    {
+        uint32_t                    m_n;
+        thrust::device_ptr< patch>  m_patches;
+
+        collide_kernel(uint32_t n, thrust::device_ptr< patch>  patches) :m_n(n), m_patches(patches)
+        {
+
+        }
+
+
+        __device__ static inline bool collide(const patch& p0, const patch& p1)
+        {
+            return false;
+        }
+
+        __device__ bool operator() (uint32_t i) const
+        {
+            patch p0 = m_patches[i];
             patch p1 = m_patches[i + 1];
             return collide(p0, p1);
         }
