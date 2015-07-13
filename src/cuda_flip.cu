@@ -15,11 +15,7 @@
 namespace freeform
 {
     /*
-    struct tab
-    {
-        aabb     m_aabb;
-        uint32_t m_index;
-    };
+
 
     struct lexicographical_sorter_tabs
     {
@@ -163,8 +159,190 @@ namespace freeform
     }
     */
 
+    struct vector2
+    {
+        float x;
+        float y;
+    };
+
+    __device__ inline vector2 make_vector2(point a, point b)
+    {
+        vector2 r;
+
+        r.x = b.x - a.x;
+        r.y = b.y - a.y;
+
+        return r;
+    }
+
+    __device__ inline vector2 mul(float s, vector2 v)
+    {
+        vector2 r;
+        r.x = v.x * s;
+        r.y = v.y * s;
+        return r;
+    }
+
+    __device__ inline vector2 add(vector2 v1, vector2 v2)
+    {
+        vector2 r;
+        r.x = v1.x + v2.x;
+        r.y = v1.y + v2.y;
+        return r;
+    }
+
+    __device__ inline vector2 sub(vector2 v1, vector2 v2)
+    {
+        vector2 r;
+        r.x = v1.x + v2.x;
+        r.y = v1.y + v2.y;
+        return r;
+    }
+
+    __device__ inline float dot(vector2 v1, vector2 v2)
+    {
+        return v1.x * v2.x + v1.y * v2.y;
+    }
+
+    struct tab
+    {
+        aabb     m_aabb;
+        uint32_t m_index;
+    };
+
+    struct collision_result
+    {
+        uint32_t m_index_0;
+        uint32_t m_index_1;
+    };
+
+    struct collision_detection_kernel
+    {
+        thrust::device_ptr< patch >           m_patches;
+        thrust::device_ptr< tab >             m_tabs;
+        thrust::device_ptr< collision_result> m_results;
+        thrust::device_ptr<uint32_t>          m_element_count;
+        uint32_t                              m_count;
+        
+        
+
+        collision_detection_kernel( thrust::device_ptr<patch>   patches, 
+                                    thrust::device_ptr<tab>     tabs,
+                                    thrust::device_ptr<collision_result> results,
+                                    thrust::device_ptr<uint32_t> element_count,
+                                    uint32_t                     count) : m_patches(patches), m_tabs(tabs), m_results(results), m_element_count(element_count), m_count(count)
+        {
+
+        }
+
+        __device__ static inline bool collide(const patch& a, const patch& b)
+        {
+            point a0 = make_point(a.x0, a.y0);
+            point a3 = make_point(a.x3, a.y3);
+
+            point b0 = make_point(b.x0, b.y0);
+            point b3 = make_point(b.x3, b.y3);
+
+            vector2 ab   = make_vector2(a0, a3);
+
+            vector2 a0b0 = make_vector2(a0, b0);
+            vector2 a0b3 = make_vector2(a0, b3);
+
+            float   d0 = dot(ab, a0b0);
+            float   d1 = dot(ab, a0b3);
+
+            float   d2 = dot(ab, ab);
+
+            float   r0 = d0 / d2;
+            float   r1 = d1 / d2;
+
+            bool    ba = r0 < 0.0f && r1 < 0.0f;
+            bool    bb = r0 > 1.0f && r1 > 1.0f;
+
+            return !(ba || bb);
+        }
+
+        __device__ void operator() ( uint32_t i )
+        {
+            if (i < m_count - 1)
+            {
+                tab t0 = m_tabs[i];
+                tab t1 = m_tabs[i+1];
+
+                auto i0 = t0.m_index;
+                auto i1 = t1.m_index;
+
+                patch p0 = m_patches[i0];
+                patch p1 = m_patches[i1];
+                auto  result = collide(p0, p1);
+ 
+                if (result)
+                {
+                    auto old = atomicAdd(m_element_count.get(), 2);
+
+
+                }
+            }
+        }
+    };
+
+    struct lexicographical_sorter_tabs
+    {
+        __device__ bool operator()(const tab& p0, const tab& p1) const
+        {
+            aabb a0 = p0.m_aabb;
+            aabb b0 = p1.m_aabb;
+
+            float4 a = math::set(a0.m_min_x, a0.m_min_y, a0.m_max_x, a0.m_max_y);
+            float4 b = math::set(b0.m_min_x, b0.m_min_y, b0.m_max_x, b0.m_max_y);
+
+            return  a.x < b.x || (a.x == b.x && (a.y < b.y || (a.y == b.y && (a.z < b.z || (a.z == b.z && a.w < b.w)))));
+        }
+    };
+
+    typedef thrust::device_vector<tab> tabs;
+    typedef thrust::host_vector<tab>   htabs;
+
+    struct build_tabs_kernel
+    {
+        __device__ tab operator() (const thrust::tuple< uint32_t, patch >& t)
+        {
+            auto i = thrust::get<0>(t);
+            auto p = thrust::get<1>(t);
+
+            tab ta;
+
+            ta.m_index = i;
+            ta.m_aabb = make_aabb(p);
+
+            return ta;
+        }
+    };
+
     patches flip(patches& p)
     {
+        using namespace thrust;
+
+        tabs t;
+        auto s = p.size();
+
+        t.resize(s);
+
+        {
+            auto cb = make_counting_iterator(0);
+            auto ce = cb + s;
+
+            auto b = make_zip_iterator(make_tuple(cb, p.begin()));
+            auto e = make_zip_iterator(make_tuple(ce, p.end()));
+
+            transform(b, e, t.begin(), build_tabs_kernel());
+        }
+
+        sort(t.begin(), t.end(), lexicographical_sorter_tabs());
+
+
+
+
         return p;
     }
 }

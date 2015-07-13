@@ -600,7 +600,7 @@ namespace freeform
         {
             auto b = make_counting_iterator(0);
             auto e = b + s.size();
-            //thrust::for_each(b, e, average_normals(&normal_vectors[0], &normal_vectors_avg[0], s.size()));
+            thrust::for_each(b, e, average_normals(&normal_vectors[0], &normal_vectors_avg[0], s.size()));
         }
         //thrust::copy(normal_vectors_avg.begin(), normal_vectors_avg.end(), normal_vectors.begin());
 

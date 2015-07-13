@@ -87,10 +87,10 @@ int32_t main( int argc, char const* argv[] )
 
     fs::media_source source(L"../../../media/");
 
-    auto url0 = fs::build_media_url(source, L"essaisynth2.png");
-    auto url1 = fs::build_media_url(source, L"essaisynth1.png");
-    auto url2 = fs::build_media_url(source, L"essaisynth2_grayscale.png");
-    auto url3 = fs::build_media_url(source, L"essaisynth2_canny.png");
+    auto url0 = fs::build_media_url(source, L"basic2_obstacles.png");
+    auto url1 = fs::build_media_url(source, L"basic1_obstacles.png");
+    auto url2 = fs::build_media_url(source, L"basic2_obstacles_grayscale.png");
+    auto url3 = fs::build_media_url(source, L"basic2_obstacles_canny.png");
 
     //read the png texture
     auto texture = imaging::read_texture(url0.get_path());
@@ -113,12 +113,12 @@ int32_t main( int argc, char const* argv[] )
     //filter out the records that match the composite criteria
     std::chrono::steady_clock::time_point start1 = std::chrono::steady_clock::now();
 
-    auto center_image_x = 341.0f / gray.get_width()  ;
-    auto center_image_y = 240.0f / gray.get_height() ;
+    auto center_image_x = 0.5f;// 341.0f / gray.get_width();
+    auto center_image_y = 0.5f;// 240.0f / gray.get_height();
 
     auto pixel_size = std::max(1.0f / gray.get_width(), 1.0f / gray.get_height());
     auto radius = 20.0f * pixel_size;
-    auto patch_count = 300;
+    auto patch_count = 100;
 
     auto init = freeform::inititialize_free_form( center_image_x, center_image_y, radius, patch_count);
 
