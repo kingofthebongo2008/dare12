@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <memory>
 #include <tuple>
+#include <algorithm>
 
 
 #include <thrust/tuple.h>
@@ -57,8 +58,8 @@ namespace freeform
     imaging::cuda_texture create_canny_texture(const imaging::cuda_texture& texture_color, float threshold);
 
 
-    std::tuple< samples, patches  > inititialize_free_form(uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count);
-    patches split(const patches& p);
+    std::tuple< samples, patches  > inititialize_free_form(float center_image_x, float center_image_y, float radius, uint32_t patch_count);
+    patches split(const patches& p, float pixel_size);
     patches flip( patches& p);
     void    deform(const patches& p, const imaging::cuda_texture& grad, patches& deformed, thrust::device_vector<uint32_t>& stop );
     bool    converged(thrust::device_vector<uint32_t>& stop);
@@ -112,10 +113,12 @@ int32_t main( int argc, char const* argv[] )
     //filter out the records that match the composite criteria
     std::chrono::steady_clock::time_point start1 = std::chrono::steady_clock::now();
 
-    auto center_image_x = 341;
-    auto center_image_y = 240;
-    auto radius = 20;
-    auto patch_count = 400;
+    auto center_image_x = 341.0f / gray.get_width()  ;
+    auto center_image_y = 240.0f / gray.get_height() ;
+
+    auto pixel_size = std::max(1.0f / gray.get_width(), 1.0f / gray.get_height());
+    auto radius = 20.0f * pixel_size;
+    auto patch_count = 300;
 
     auto init = freeform::inititialize_free_form( center_image_x, center_image_y, radius, patch_count);
 
@@ -128,7 +131,7 @@ int32_t main( int argc, char const* argv[] )
 
     while (!stop_iterations)
     {
-        old = split(deformed);
+        old = split(deformed, pixel_size);
         old = flip(old);
         freeform::deform(old, canny, deformed, stop);
         stop_iterations = freeform::converged(stop);

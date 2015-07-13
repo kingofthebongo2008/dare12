@@ -106,29 +106,39 @@ namespace freeform
         return r;
     }
 
-    __device__ inline float norm_l2(float x, float y)
+    __device__ inline float norm_l2_a(float x, float y)
     {
-        return  sqrtf(x * x + y * y);
+        return  sqrtf( x * x + y * y );
     }
 
     //calculate normal vector of q cubic bezier poin, assumes in s are the tangent (derivative) values of the bezier curve
     __device__ inline sample normal_vector(const sample& s)
     {
-        float d0 = norm_l2(s.x0, s.y0);
-        float d1 = norm_l2(s.x1, s.y1);
-        float d2 = norm_l2(s.x2, s.y2);
-        float d3 = norm_l2(s.x3, s.y3);
+        float d0 = norm_l2_a(s.x0, s.y0);
+        float d1 = norm_l2_a(s.x1, s.y1);
+        float d2 = norm_l2_a(s.x2, s.y2);
+        float d3 = norm_l2_a(s.x3, s.y3);
+
+        //float mul0 = d0 < 0.0001f ? 0.0f: 1.0f / d0;
+        //float mul1 = d1 < 0.0001f ? 0.0f: 1.0f / d1;
+        //float mul2 = d2 < 0.0001f ? 0.0f: 1.0f / d2;
+        //float mul3 = d3 < 0.0001f ? 0.0f: 1.0f / d3;
+
+        float mul0 = 1.0f / d0;
+        float mul1 = 1.0f / d1;
+        float mul2 = 1.0f / d2;
+        float mul3 = 1.0f / d3;
 
         //convert to union tangent vector
-        float x0 = s.x0 / d0;
-        float x1 = s.x1 / d1;
-        float x2 = s.x2 / d2;
-        float x3 = s.x3 / d3;
+        float x0 = s.x0 * mul0;
+        float x1 = s.x1 * mul1;
+        float x2 = s.x2 * mul2;
+        float x3 = s.x3 * mul3;
 
-        float y0 = s.y0 / d0;
-        float y1 = s.y1 / d1;
-        float y2 = s.y2 / d2;
-        float y3 = s.y3 / d3;
+        float y0 = s.y0 * mul0;
+        float y1 = s.y1 * mul1;
+        float y2 = s.y2 * mul2;
+        float y3 = s.y3 * mul3;
 
         //obtain normal components as a rotation in the plane of the tangent components of 90 degrees
         float n_x_0 = y0;
@@ -275,12 +285,13 @@ namespace freeform
         const   cuda::image_kernel_info m_sampler;
         const   uint8_t*                m_grad;
 
+
         deform_points_kernel2(const cuda::image_kernel_info& sampler, const uint8_t* grad) : m_sampler(sampler), m_grad(grad)
         {
 
         }
 
-        __device__ static inline float    compute_sobel(
+        __device__ inline float    compute_sobel_dx(
             float ul, // upper left
             float um, // upper middle
             float ur, // upper right
@@ -289,17 +300,28 @@ namespace freeform
             float mr, // middle right
             float ll, // lower left
             float lm, // lower middle
-            float lr, // lower right
-            float& dx,
-            float& dy
+            float lr // lower right
             )
         {
-            dx = ur + 2 * mr + lr - ul - 2 * ml - ll;
-            dy = ul + 2 * um + ur - ll - 2 * lm - lr;
-
-            float  sum = static_cast<float> (abs(dx) + abs(dy));
-            return sum;
+            return ur + 2 * mr + lr - ul - 2 * ml - ll;
         }
+
+        __device__ inline float    compute_sobel_dy(
+            float ul, // upper left
+            float um, // upper middle
+            float ur, // upper right
+            float ml, // middle left
+            float mm, // middle (unused)
+            float mr, // middle right
+            float ll, // lower left
+            float lm, // lower middle
+            float lr // lower right
+            )
+        {
+            return  ul + 2 * um + ur - ll - 2 * lm - lr;
+        }
+
+
 
         __device__ thrust::tuple<point, uint8_t> operator() (const thrust::tuple < point, point> p)
         {
@@ -308,8 +330,20 @@ namespace freeform
             auto pt = thrust::get<0>(p);
             auto normal = thrust::get<1>(p);
 
-            auto x = pt.x;
-            auto y = pt.y;
+            auto w = m_sampler.width();
+            auto h = m_sampler.height();
+
+
+            auto pixel_size = max(1.0f / w, 1.0f / h);
+            auto pixel_size_y = 1.0f / h;
+            auto scale = 0.5f;
+            auto k1 = make_point(scale * pixel_size, scale * pixel_size);   //adjust this for faster convergence
+
+            auto d0 = mad(k1, normal, pt);
+             
+            auto x = d0.x * w;
+            auto y = d0.y * h;
+
 
             const uint8_t* pix00 = sample_2d< uint8_t, border_type::clamp >(m_grad, m_sampler, x - 1, y - 1);
             const uint8_t* pix01 = sample_2d< uint8_t, border_type::clamp >(m_grad, m_sampler, x - 0, y - 1);
@@ -323,7 +357,7 @@ namespace freeform
             const uint8_t* pix20 = sample_2d< uint8_t, border_type::clamp >(m_grad, m_sampler, x - 1, y + 1);
             const uint8_t* pix21 = sample_2d< uint8_t, border_type::clamp >(m_grad, m_sampler, x - 0, y + 1);
             const uint8_t* pix22 = sample_2d< uint8_t, border_type::clamp >(m_grad, m_sampler, x + 1, y + 1);
-
+             
             auto  u00 = *pix00;
             auto  u01 = *pix01;
             auto  u02 = *pix02;
@@ -345,24 +379,17 @@ namespace freeform
             mx = max(mx, u21);
             mx = max(mx, u22);
 
-            point d0;
-            auto w = m_sampler.width();
-            auto h = m_sampler.height();
+
             uint32_t stop = 0;
 
-            if ( false ) //mx > 250  || pt.x > (w - 4) || pt.y > ( h - 4) ) 
+            if ( mx > 250  || x > (w - 4) || y > ( h - 4) ) 
             {  
                 d0 = pt;
                 stop = 1;
             }
             else
             {
-                auto k1 = make_point(2.0f, 2.0f);   //adjust this for faster convergence
-                d0 = mad(k1, normal, pt);
                 
-                point a = make_point(0.0011111f, 0.0011111f);
-                d0 = add(d0, a);
-                d0 = sub(d0, a);
             }
 
             return thrust::make_tuple(d0, stop);
@@ -397,6 +424,19 @@ namespace freeform
             s.y2 = r2.y - p2.y;
             s.y3 = r3.y - p3.y;
 
+            /*
+            s.x0 = fabs(s.x0) < 0.0001f ? 0.0f : s.x0;
+            s.x2 = fabs(s.x1) < 0.0001f ? 0.0f : s.x1;
+            s.x1 = fabs(s.x2) < 0.0001f ? 0.0f : s.x2;
+            s.x3 = fabs(s.x3) < 0.0001f ? 0.0f : s.x3;
+
+            s.y0 = fabs(s.y0) < 0.0001f ? 0.0f : s.y0;
+            s.y2 = fabs(s.y1) < 0.0001f ? 0.0f : s.y1;
+            s.y1 = fabs(s.y2) < 0.0001f ? 0.0f : s.y2;
+            s.y3 = fabs(s.y3) < 0.0001f ? 0.0f : s.y3;
+            
+            */
+            
             //obtain delta of moved control points
             patch r = interpolate_curve(s);
 
@@ -489,10 +529,42 @@ namespace freeform
 
             n = normalize(n);
 
-            m_normals_out[i0] = n;
-            m_normals_out[i1] = n;
+            m_normals_out[i0] = n0;
+            m_normals_out[i1] = n0;
         }
     };
+
+    struct blur_kernel
+    {
+        thrust::device_ptr< point > m_points_in;
+        uint32_t                    m_count;
+
+        blur_kernel(thrust::device_ptr<point> points_in, uint32_t count) :
+            m_points_in(points_in)
+            , m_count(count)
+        {
+
+        }
+
+        __device__ point operator() (uint32_t i) const
+        {
+            auto i0 = i;
+            auto i1 = i + 1;
+
+            if (i == m_count - 1)
+            {
+                i1 = 0;
+            }
+
+            point n0 = m_points_in[i0];
+            point n1 = m_points_in[i1];
+
+            point n = mul(0.5f, add(n0, n1));
+
+            return n;
+        }
+    };
+
 
     //sample the curve and obtain patches through curve interpolation as in the paper
     void deform( const patches& p, const imaging::cuda_texture& grad, patches& deformed, thrust::device_vector<uint32_t>& stop)
@@ -528,9 +600,9 @@ namespace freeform
         {
             auto b = make_counting_iterator(0);
             auto e = b + s.size();
-            thrust::for_each(b, e, average_normals(&normal_vectors[0], &normal_vectors_avg[0], s.size()));
+            //thrust::for_each(b, e, average_normals(&normal_vectors[0], &normal_vectors_avg[0], s.size()));
         }
-        thrust::copy(normal_vectors_avg.begin(), normal_vectors_avg.end(), normal_vectors.begin());
+        //thrust::copy(normal_vectors_avg.begin(), normal_vectors_avg.end(), normal_vectors.begin());
 
         //convert patches to points for easier gradient sampling
         points  pts;
@@ -563,13 +635,25 @@ namespace freeform
             thrust::transform(b, e, tb, deform_points_kernel2(info, pixels) );
         }
 
+        points blurred_points;
+        blurred_points.resize(s.size() * 4);
+        {
+            auto b = resampled_points.begin();
+            auto e = resampled_points.end();
+
+            auto cb = make_counting_iterator(0);
+            auto ce = cb + s.size() * 4;
+
+            thrust::transform(cb, ce, blurred_points.begin(), blur_kernel(&resampled_points[0], s.size() * 4));
+        }
+
         //gather transformed samples again
         patches control_points;
         control_points.resize(s.size());
         {
             //resampled points
-            auto b = resampled_points.begin();
-            auto e = resampled_points.end();
+            auto b = blurred_points.begin();
+            auto e = blurred_points.end();
 
             auto r0 = make_strided_range(b + 0, e, 4);
             auto r1 = make_strided_range(b + 1, e, 4);
@@ -594,7 +678,7 @@ namespace freeform
 
 
         deformed.resize( s.size() );
-        copy(control_points.begin(), control_points.end(), deformed.begin());
+        //copy(control_points.begin(), control_points.end(), deformed.begin());
         
         //print<patches, patch>(control_points);
         //average points on the boundaries between patches, since they point in different directions

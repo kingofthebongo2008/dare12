@@ -65,7 +65,7 @@ namespace freeform
     };
 
     //sample the curve and obtain patches through curve interpolation as in the paper
-    std::tuple< samples, patches  > inititialize_free_form(uint32_t center_image_x, uint32_t center_image_y, float radius, uint32_t patch_count)
+    std::tuple< samples, patches  > inititialize_free_form(float center_image_x, float center_image_y, float radius, uint32_t patch_count)
     {
         thrust::device_vector<float> x;
         thrust::device_vector<float> y;

@@ -29,7 +29,7 @@ vs_samples_output main(in vs_samples_input i)
 
     float2 transform = float2 (1.0f / m_image_width, 1.0f / m_image_height);
 
-    o     = i.m_position * transform;
+        o = i.m_position;// *transform;
 
     //invert y
     o.y   = 1.0f - o.y;

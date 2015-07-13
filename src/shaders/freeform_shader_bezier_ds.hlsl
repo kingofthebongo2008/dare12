@@ -24,7 +24,7 @@ ds_output main(hs_constant_data_output i, OutputPatch<hs_bezier_output, 4> op, f
     //change x and y, since it appears that otherwise the display is not correct
     float2 transform = float2 (1.0f / m_image_width, 1.0f / m_image_height);
 
-    pos = pos * transform.xy;
+    //pos = pos * transform.xy;
     pos.y = 1.0f - pos.y;
     pos = pos *  2.0f - 1.0f;
 

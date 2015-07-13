@@ -14,21 +14,51 @@
 
 namespace freeform
 {
+    /*
+    struct tab
+    {
+        aabb     m_aabb;
+        uint32_t m_index;
+    };
+
+    struct lexicographical_sorter_tabs
+    {
+        __device__ bool operator()(const tab& p0, const tab& p1) const
+        {
+            aabb a0 = p0.m_aabb;
+            aabb b0 = p1.m_aabb;
+
+            float4 a = math::set(a0.m_min_x, a0.m_min_y, a0.m_max_x, a0.m_max_y);
+            float4 b = math::set(b0.m_min_x, b0.m_min_y, b0.m_max_x, b0.m_max_y);
+
+            return  a.x < b.x || (a.x == b.x && (a.y < b.y || (a.y == b.y && (a.z < b.z || (a.z == b.z && a.w < b.w)))));
+        }
+    };
+    
+
+    typedef thrust::device_vector<tab> tabs;
+    typedef thrust::host_vector<tab>   htabs;
+
+    struct collision_result
+    {
+        uint32_t m_index_0;
+        uint32_t m_index_1;
+    };
+
     struct collide_kernel_aabb
     {
         uint32_t                    m_n;
-        thrust::device_ptr< patch>  m_patches;
+        thrust::device_ptr< tab>    m_tabs;
 
         collide_kernel_aabb(uint32_t n, thrust::device_ptr< patch>  patches) :m_n(n), m_patches(patches)
         {
 
         }
 
-
-        __device__ static inline bool collide(const patch& p0, const patch& p1 )
+        __device__ static inline bool collide(const tab& p0, const tab& p1 )
         {
-            aabb a0 = make_aabb(p0);
-            aabb b0 = make_aabb(p1);
+            aabb a0 = p0.m_aabb;
+            aabb b0 = p1.m_aabb;
 
             float4 a = math::set(a0.m_min_x, a0.m_min_y, a0.m_max_x, a0.m_max_y);
             float4 b = math::set(b0.m_min_x, b0.m_min_y, b0.m_max_x, b0.m_max_y);
@@ -44,29 +74,7 @@ namespace freeform
         }
     };
 
-    struct collide_kernel
-    {
-        uint32_t                    m_n;
-        thrust::device_ptr< patch>  m_patches;
-
-        collide_kernel(uint32_t n, thrust::device_ptr< patch>  patches) :m_n(n), m_patches(patches)
-        {
-
-        }
-
-
-        __device__ static inline bool collide(const patch& p0, const patch& p1)
-        {
-            return false;
-        }
-
-        __device__ bool operator() (uint32_t i) const
-        {
-            patch p0 = m_patches[i];
-            patch p1 = m_patches[i + 1];
-            return collide(p0, p1);
-        }
-    };
+   
 
     static inline std::tuple<patch, patch> reorder(const patch& p0, const patch& p1)
     {
@@ -98,27 +106,14 @@ namespace freeform
 
     patches flip(   patches& p  )
     {
-
+        return p;
         using namespace thrust;
 
         auto s = p.size();
+           
         device_vector< bool > collision;
-        
-        patches r1;
 
-        r1.resize(s);
-
-        copy(p.begin(), p.end(), r1.begin());
-
-        //copy_n(p.begin() + 1, s - 1, r1.begin() );
-        //copy_n(p.begin(), 1, r1.begin() + s - 1);
-
-
-        //sort(r1.begin(), r1.end(), lexicographical_sorter());
-
-
-
-        return r1;
+        sort(p.begin(), p.end(), lexicographical_sorter());
 
         collision.resize( p.size() );
 
@@ -144,7 +139,7 @@ namespace freeform
 
         for (uint32_t i = 0; i < s ; ++i)
         {
-            if ( h_collision[i])
+            if ( h_collision[i] && (i == 0))
             {
                 auto t = reorder(h_patches[i], h_patches[i + 1]);
 
@@ -165,6 +160,12 @@ namespace freeform
         copy(outside.begin(), outside.end(), r.begin());
         copy(inside.begin(), inside.end(),  r.begin() + outside.size() );
         return r;
+    }
+    */
+
+    patches flip(patches& p)
+    {
+        return p;
     }
 }
 

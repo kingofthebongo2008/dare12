@@ -44,7 +44,7 @@ namespace freeform
 
             auto m = fmax(fmax(d_0, d_1), d_2);
 
-            if (m > m_seuil)
+            if (m > m_seuil  )
             {
                 float4 g1u = math::set(0.0f, 1.0f / 6.0f, 2.0f / 6.0f, 3.0f / 6.0f);
                 float4 g2u = math::set(3.0f / 6.0f, 4.0f / 6.0f, 5.0f / 6.0f, 6.0f / 6.0f);
@@ -73,8 +73,47 @@ namespace freeform
         }
     };
 
+    struct average_patches
+    {
+        thrust::device_ptr< patch > m_patches_in;
+        thrust::device_ptr< patch > m_patches_out;
+        uint32_t                    m_count;
+
+        average_patches(thrust::device_ptr<patch> patches_in, thrust::device_ptr<patch> patches_out, uint32_t count) :
+            m_patches_in(patches_in)
+            , m_patches_out(patches_out)
+            , m_count(count)
+        {
+
+        }
+
+        __device__ void operator() (uint32_t i) const
+        {
+            auto i0 = i;
+            auto i1 = i + 1;
+
+
+            if (i1 == m_count)
+            {
+                i1 = 0;
+            }
+
+            patch p0 = m_patches_in[i0];
+            patch p1 = m_patches_in[i1];
+
+            patch r0 = p0;
+            patch r1 = p1;
+
+            r0.x3 = r1.x0;
+            r0.y3 = r1.y0;
+
+            //copy the modified patch to stick the control points together
+            m_patches_out[i0] = r0;
+        }
+    };
+
     //split procedure, generates new patches if they are too close
-    patches split(const patches& p)
+    patches split(const patches& p, float pixel_size)
     {
         using namespace thrust;
 
@@ -98,7 +137,7 @@ namespace freeform
         auto b = make_zip_iterator(make_tuple(p.begin(), cb));
         auto e = make_zip_iterator(make_tuple(p.end(), ce));
 
-        for_each(b, e, multi_eval_patches2_kernel(16, &n2[0], &element_count[0], &keys[0]));
+        for_each(b, e, multi_eval_patches2_kernel(8 * pixel_size, &n2[0], &element_count[0], &keys[0]));
 
         //fetch the number of new patches that were added
         auto elements = element_count.front();
@@ -112,7 +151,18 @@ namespace freeform
         //the patches in the free form countour have order which must be maintained
         sort_by_key(keys.begin(), keys.end(), n2.begin());
 
-        return n2;
+
+        patches n3;
+        n3.resize(n2.size());
+
+
+        {
+            auto b = make_counting_iterator(0);
+            auto e = b + n2.size();
+            thrust::for_each(b, e, average_patches(&n2[0], &n3[0], n2.size()));
+        }
+
+        return n3;
     }
 }
 
