@@ -222,15 +222,13 @@ namespace freeform
         thrust::device_ptr< tab >             m_tabs;
         thrust::device_ptr< collision_result> m_results;
         thrust::device_ptr<uint32_t>          m_element_count;
-        uint32_t                              m_count;
         
         
 
         collision_detection_kernel( thrust::device_ptr<patch>   patches, 
                                     thrust::device_ptr<tab>     tabs,
                                     thrust::device_ptr<collision_result> results,
-                                    thrust::device_ptr<uint32_t> element_count,
-                                    uint32_t                     count) : m_patches(patches), m_tabs(tabs), m_results(results), m_element_count(element_count), m_count(count)
+                                    thrust::device_ptr<uint32_t> element_count ) : m_patches(patches), m_tabs(tabs), m_results(results), m_element_count(element_count)
         {
 
         }
@@ -264,7 +262,7 @@ namespace freeform
 
         __device__ void operator() ( uint32_t i )
         {
-            if (i < m_count - 1)
+            if (true)
             {
                 tab t0 = m_tabs[i];
                 tab t1 = m_tabs[i+1];
@@ -278,9 +276,14 @@ namespace freeform
  
                 if (result)
                 {
-                    auto old = atomicAdd(m_element_count.get(), 2);
+                    auto id = atomicAdd(m_element_count.get(), 2);
 
+                    collision_result r;
 
+                    r.m_index_0 = i0;
+                    r.m_index_1 = i1;
+
+                    m_results[id] = r;
                 }
             }
         }
@@ -340,8 +343,34 @@ namespace freeform
 
         sort(t.begin(), t.end(), lexicographical_sorter_tabs());
 
+        device_vector< collision_result >     dresults;
+        host_vector< collision_result >       results;
+        
+
+        {
+            device_ptr<uint32_t>                  element_count = device_malloc<uint32_t>(1);
+            dresults.resize(s);
+            *element_count = 0;
+
+            auto cb = make_counting_iterator(0);
+            auto ce = cb + s - 1;
+
+            for_each(cb, ce, collision_detection_kernel(&p[0], &t[0], &dresults[0], element_count));
+            dresults.resize(*element_count);
+           
+            device_free(element_count);
+
+            results.resize(dresults.size());
+            copy(dresults.begin(), dresults.end(), results.begin());
 
 
+        }
+
+
+        
+
+
+        
 
         return p;
     }
