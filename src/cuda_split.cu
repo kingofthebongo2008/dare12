@@ -137,7 +137,7 @@ namespace freeform
         auto b = make_zip_iterator(make_tuple(p.begin(), cb));
         auto e = make_zip_iterator(make_tuple(p.end(), ce));
 
-        for_each(b, e, multi_eval_patches2_kernel(8 * pixel_size, &n2[0], &element_count[0], &keys[0]));
+        for_each(b, e, multi_eval_patches2_kernel(16 * pixel_size, &n2[0], &element_count[0], &keys[0]));
 
         //fetch the number of new patches that were added
         auto elements = element_count.front();
@@ -151,18 +151,17 @@ namespace freeform
         //the patches in the free form countour have order which must be maintained
         sort_by_key(keys.begin(), keys.end(), n2.begin());
 
-
+        /*
         patches n3;
         n3.resize(n2.size());
-
-
         {
             auto b = make_counting_iterator(0);
             auto e = b + n2.size();
             thrust::for_each(b, e, average_patches(&n2[0], &n3[0], n2.size()));
         }
+        */
 
-        return n3;
+        return n2;
     }
 }
 
