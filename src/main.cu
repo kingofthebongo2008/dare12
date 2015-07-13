@@ -115,7 +115,7 @@ int32_t main( int argc, char const* argv[] )
     auto center_image_x = 341;
     auto center_image_y = 240;
     auto radius = 20;
-    auto patch_count = 10;
+    auto patch_count = 400;
 
     auto init = freeform::inititialize_free_form( center_image_x, center_image_y, radius, patch_count);
 
@@ -139,7 +139,8 @@ int32_t main( int argc, char const* argv[] )
 
     //display the results
     //freeform::display(gray, std::get<1>(init));
-    freeform::display(gray, freeform::sample_patches(deformed));
+    //freeform::display(gray, freeform::sample_patches(deformed));
+    freeform::display(gray, deformed);
 
     return 0;
 

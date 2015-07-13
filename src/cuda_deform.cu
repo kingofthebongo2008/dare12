@@ -350,15 +350,19 @@ namespace freeform
             auto h = m_sampler.height();
             uint32_t stop = 0;
 
-            if ( mx > 250  || pt.x > (w - 4) || pt.y > ( h - 4) ) 
+            if ( false ) //mx > 250  || pt.x > (w - 4) || pt.y > ( h - 4) ) 
             {  
                 d0 = pt;
                 stop = 1;
             }
             else
             {
-                auto k1 = make_point(1.5f, 1.5f);   //adjust this for faster convergence
+                auto k1 = make_point(2.0f, 2.0f);   //adjust this for faster convergence
                 d0 = mad(k1, normal, pt);
+                
+                point a = make_point(0.0011111f, 0.0011111f);
+                d0 = add(d0, a);
+                d0 = sub(d0, a);
             }
 
             return thrust::make_tuple(d0, stop);
@@ -454,86 +458,41 @@ namespace freeform
         }
     };
 
-    std::vector<patch> create_vector(const thrust::device_vector<patch>& p)
+    struct average_normals
     {
-        using namespace thrust;
-        host_vector<patch> h;
-        std::vector<patch> h1;
+        thrust::device_ptr< point > m_normals_in;
+        thrust::device_ptr< point > m_normals_out;
+        uint32_t                    m_count;
 
-        h.resize(p.size());
-        h1.resize(p.size());
-
-        copy(p.begin(), p.end(), h.begin());
-
-        std::copy(h.begin(), h.end(), h1.begin());
-
-        return h1;
-    }
-
-    std::vector<patch> create_vector(const std::vector<patch>& p0, const std::vector<patch>& p1)
-    {
-        std::vector<patch> rv;
-
-        rv.resize(p0.size());
-
-        for (auto i = 0; i < p0.size(); ++i)
+        average_normals(thrust::device_ptr<point> normals_in, thrust::device_ptr<point> normals_out, uint32_t count) :
+            m_normals_in(normals_in)
+            , m_normals_out(normals_out)
+            , m_count(count)
         {
-            patch a = p0[i];
-            patch b = p1[i];
-
-
-            patch r;
-
-            r.x0 = a.x0 - b.x0;
-            r.x1 = a.x1 - b.x1;
-            r.x2 = a.x2 - b.x2;
-            r.x3 = a.x3 - b.x3;
-
-            r.y0 = a.y0 - b.y0;
-            r.y1 = a.y1 - b.y1;
-            r.y2 = a.y2 - b.y2;
-            r.y3 = a.y3 - b.y3;
-
-            rv[i] = r;
-        }
-
-        return rv;
-    }
-
-    float abs_diff(const std::vector<patch>& p0)
-    {
-        float maximum = 0.0f;
-
-        for (auto i = 0; i < p0.size(); ++i)
-        {
-            patch r = p0[i];
-
-            auto a0 = abs(r.x0);
-            auto a1 = abs(r.x1);
-            auto a2 = abs(r.x2);
-            auto a3 = abs(r.x3);
-
-            auto b0 = abs(r.y0);
-            auto b1 = abs(r.y1);
-            auto b2 = abs(r.y2);
-            auto b3 = abs(r.y3);
-
-            auto m = std::max(a0, a1);
-
-            m = std::max(m, a2);
-            m = std::max(m, a3);
-
-            auto n = std::max(b0, b1);
-
-            n = std::max(n, b2);
-            n = std::max(n, b3);
-
-            maximum = std::max(maximum, std::max(m, n));
 
         }
 
-        return maximum;
-    }
+        __device__ void operator() (uint32_t i) const
+        {
+            auto i0 = 4 * i + 3;
+            auto i1 = 4 * i + 4;
+
+            if (i == m_count - 1)
+            {
+                i1 = 0;
+            }
+
+            point n0 = m_normals_in[i0];
+            point n1 = m_normals_in[i1];
+
+            point n = mul(0.5f, add(n0, n1));
+
+            n = normalize(n);
+
+            m_normals_out[i0] = n;
+            m_normals_out[i1] = n;
+        }
+    };
 
     //sample the curve and obtain patches through curve interpolation as in the paper
     void deform( const patches& p, const imaging::cuda_texture& grad, patches& deformed, thrust::device_vector<uint32_t>& stop)
@@ -561,7 +520,17 @@ namespace freeform
             thrust::for_each(b, e, scatter_normals_kernel());
         }
 
+        //make the normal vectors to be the same for the same control points
+        points  normal_vectors_avg;
+        normal_vectors_avg.resize(s.size() * 4);
+        thrust::copy(normal_vectors.begin(), normal_vectors.end(), normal_vectors_avg.begin());
 
+        {
+            auto b = make_counting_iterator(0);
+            auto e = b + s.size();
+            thrust::for_each(b, e, average_normals(&normal_vectors[0], &normal_vectors_avg[0], s.size()));
+        }
+        thrust::copy(normal_vectors_avg.begin(), normal_vectors_avg.end(), normal_vectors.begin());
 
         //convert patches to points for easier gradient sampling
         points  pts;
@@ -576,7 +545,6 @@ namespace freeform
             auto e = make_zip_iterator(make_tuple(p.end(), r0.end(), r1.end(), r2.end(), r3.end()));
             thrust::for_each(b, e, scatter_points_kernel());
         }
-
 
         //deform samples with the image gradient
         points resampled_points;
@@ -626,7 +594,7 @@ namespace freeform
 
 
         deformed.resize( s.size() );
-        //copy(control_points.begin(), control_points.end(), deformed.begin());
+        copy(control_points.begin(), control_points.end(), deformed.begin());
         
         //print<patches, patch>(control_points);
         //average points on the boundaries between patches, since they point in different directions
@@ -637,19 +605,6 @@ namespace freeform
             auto b = make_counting_iterator(0);
             auto e = b + s.size();
             thrust::for_each(b, e, average_patches(&control_points[0], &deformed[0], s.size()));
-        }
-
-        if (iterations == 133)
-        {
-            auto points = create_vector(control_points);
-            auto points2 = create_vector(deformed);
-
-            auto diff = create_vector(points, points2);
-            auto abs = abs_diff(diff);
-
-
-            //__debugbreak();
-
         }
 
         return;

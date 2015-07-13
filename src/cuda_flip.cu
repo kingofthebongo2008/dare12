@@ -98,22 +98,34 @@ namespace freeform
 
     patches flip(   patches& p  )
     {
-        return p;
-        
+
         using namespace thrust;
 
         auto s = p.size();
         device_vector< bool > collision;
         
+        patches r1;
 
-        sort(p.begin(), p.end(), lexicographical_sorter());
+        r1.resize(s);
+
+        copy(p.begin(), p.end(), r1.begin());
+
+        //copy_n(p.begin() + 1, s - 1, r1.begin() );
+        //copy_n(p.begin(), 1, r1.begin() + s - 1);
+
+
+        //sort(r1.begin(), r1.end(), lexicographical_sorter());
+
+
+
+        return r1;
 
         collision.resize( p.size() );
 
         auto b = make_counting_iterator(0);
         auto e = b + s - 1;
 
-        transform(b, e, collision.begin(), collide_kernel(s, &p[0]));
+        transform(b, e, collision.begin(), collide_kernel_aabb(s, &p[0]));
 
         host_vector<patch>  h_patches;
         host_vector< bool > h_collision;

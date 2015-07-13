@@ -297,13 +297,13 @@
     <FxCompile Include="..\src\shaders\freeform_shader_bezier_ps.hlsl">
       <Filter>source Files\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="..\include\gx\shaders\gx_shader_copy_texture_ps.hlsl">
-      <Filter>source Files</Filter>
-    </FxCompile>
     <FxCompile Include="..\src\shaders\freeform_shader_samples_vs.hlsl">
       <Filter>source Files\shaders</Filter>
     </FxCompile>
     <FxCompile Include="..\src\shaders\freeform_shader_samples_ps.hlsl">
+      <Filter>source Files\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\include\gx\shaders\gx_shader_copy_texture_ps.hlsl">
       <Filter>source Files\shaders</Filter>
     </FxCompile>
   </ItemGroup>
