@@ -256,6 +256,9 @@
     <ClInclude Include="..\src\cuda_patches.h">
       <Filter>header files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\collision_detection.h">
+      <Filter>header files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="readMe.txt" />

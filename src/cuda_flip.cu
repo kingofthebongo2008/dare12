@@ -14,6 +14,8 @@
 #include "cuda_patches.h"
 #include "cuda_print_utils.h"
 
+#include "collision_detection.h"
+
 namespace freeform
 {
     /*
@@ -219,9 +221,6 @@ namespace freeform
     {
         __device__ bool operator() (const collision_result& a, const collision_result& b)
         {
-            uint64_t a0 = a.m_index_1 << 32 + a.m_index_0;
-            uint64_t b0 = b.m_index_1 << 32 + b.m_index_0;
-
             if (a.m_index_0 < b.m_index_0)
             {
                 return true;
@@ -243,6 +242,7 @@ namespace freeform
 
     struct collision_control_polygon
     {
+        //sweep algorithm
         __device__ inline bool operator()(const patch& a, const patch& b) const
         {
             point a0 = make_point(a.x0, a.y0);
@@ -286,6 +286,15 @@ namespace freeform
         }
     };
 
+    struct collision_segments
+    {
+        //segment intersection of the control polygon
+        __device__ inline bool operator()(const patch& p0, const patch& p1) const
+        {
+            return intersect_patches(p0, p1);
+        }
+    };
+
     template < typename t > 
     struct collision_detection_kernel
     {
@@ -319,6 +328,53 @@ namespace freeform
                 patch p1 = m_patches[i1];
                 auto  result = m_collision_functor(p0, p1);
  
+                if (result)
+                {
+                    auto id = atomicAdd(m_element_count.get(), 1);
+
+                    collision_result r;
+
+                    r.m_index_0 = min(i0, i1);
+                    r.m_index_1 = max(i0, i1);
+
+                    m_results[id] = r;
+                }
+            }
+        }
+    };
+
+    template < typename t >
+    struct collision_detection_kernel2
+    {
+        thrust::device_ptr< patch >             m_patches;
+        thrust::device_ptr< collision_result >  m_aabb_results;
+        thrust::device_ptr< collision_result>   m_results;
+        thrust::device_ptr<uint32_t>            m_element_count;
+        t                                       m_collision_functor;
+
+
+
+        collision_detection_kernel2(thrust::device_ptr<patch>   patches,
+            thrust::device_ptr<collision_result>               aabb_results,
+            thrust::device_ptr<collision_result> results,
+            thrust::device_ptr<uint32_t> element_count, const t& collision_functor) : m_patches(patches), m_aabb_results(aabb_results), m_results(results), m_element_count(element_count), m_collision_functor(collision_functor)
+        {
+
+        }
+
+        __device__ void operator() (uint32_t i)
+        {
+            if (true)
+            {
+                collision_result r = m_aabb_results[i];
+
+                auto i0 = r.m_index_0;
+                auto i1 = r.m_index_1;
+
+                patch p0 = m_patches[i0];
+                patch p1 = m_patches[i1];
+                auto  result = m_collision_functor(p0, p1);
+
                 if (result)
                 {
                     auto id = atomicAdd(m_element_count.get(), 1);
@@ -415,8 +471,6 @@ namespace freeform
         tabs t;
         auto s = p.size();
 
-        auto k = s * sizeof(tab);
-
         t.resize( p.size() );
 
         {
@@ -432,7 +486,8 @@ namespace freeform
         sort(t.begin(), t.end(), lexicographical_sorter_tabs());
 
         device_vector< collision_result >     dresults;
-        host_vector< collision_result >       results;
+        device_vector< collision_result >     dresults_segment;
+        host_vector< collision_result >       results_segment;
         
         {
             device_ptr<uint32_t>                  element_count = device_malloc<uint32_t>(1);
@@ -442,17 +497,43 @@ namespace freeform
             auto cb = make_counting_iterator(0);
             auto ce = cb + s - 1;
 
+            //test aabb 
             for_each(cb, ce, collision_detection_kernel<collision_aabb>(&p[0], &t[0], &dresults[0], element_count, collision_aabb()));
             dresults.resize(*element_count);
            
-            device_free(element_count);
+            //if aabb returns results
+            if ( !dresults.empty() )
+            {
+                device_ptr<uint32_t>                  element_count2 = device_malloc<uint32_t>(1);
 
-            results.resize(dresults.size());
-            sort(dresults.begin(), dresults.end(), collision_result_sorter());
-            copy(dresults.begin(), dresults.end(), results.begin());
+                dresults_segment.resize(dresults.size());
+                cb = make_counting_iterator(0);
+                ce = cb + dresults.size();
+
+                *element_count2 = 0;
+                //test segments of the aabb
+                for_each(cb, ce, collision_detection_kernel2<collision_segments>(&p[0], &dresults[0], &dresults_segment[0], element_count2, collision_segments()));
+
+                dresults_segment.resize(*element_count2);
+
+                if (!dresults_segment.empty())
+                {
+                    __debugbreak();
+
+                    results_segment.resize(dresults_segment.size());
+                    sort(dresults_segment.begin(), dresults_segment.end(), collision_result_sorter());
+                    copy(dresults_segment.begin(), dresults_segment.end(), results_segment.begin());
+                }
+
+                device_free(element_count2);
+            }
+          
+
+            device_free(element_count);
         }
 
-        if (!results.empty())
+        //if there are collisions
+        if (!results_segment.empty())
         {
             host_vector<patch> h_patches;
             {
@@ -460,10 +541,13 @@ namespace freeform
                 copy(p.begin(), p.end(), h_patches.begin());
             }
 
-            std::vector<collision_result> test;
-            test.resize(results.size());
 
-            std::copy(results.begin(), results.end(), test.begin());
+
+
+            std::vector<collision_result> test;
+            test.resize(results_segment.size());
+
+            std::copy(results_segment.begin(), results_segment.end(), test.begin());
 
             std::vector<patch> h_results2;
             h_results2.resize(h_patches.size());
@@ -473,42 +557,9 @@ namespace freeform
             {
                 auto r = test[i];
                 auto t = reorder(h_patches[ r.m_index_0], h_patches[r.m_index_1]);
-
-                patch z;
-                z.x0 = 0.0;
-                z.x1 = 0.0;
-                z.x2 = 0.0;
-                z.x3 = 0.0;
-
-                z.y0 = 0.0;
-                z.y1 = 0.0;
-                z.y2 = 0.0;
-                z.y3 = 0.0;
-
-
-                //insert the new patch
-                h_results2[r.m_index_0] = std::get<0>(t);
-                h_results2[r.m_index_1] = z;
+                  
             }
 
-            std::vector<patch> h_result3;
-            h_result3.reserve(h_results2.size());
-
-            for (auto i = 0U; i < h_results2.size(); ++i)
-            {
-                patch z = h_results2[i];
-
-                if (! ( z.x0 == 0.0f && z.x1 == 0.0f && z.x2 == 0.0f && z.x3 == 0.0f && z.y0 == 0.0f && z.y1 == 0.0f && z.y2 == 0.0f && z.y3 == 0.0f))
-                {
-                    h_result3.push_back(z);
-                }
-            }
-
-            patches res;
-
-            res.resize(h_result3.size());
-
-            thrust::copy(h_result3.begin(), h_result3.end(), res.begin());
             return p;
         }
         else

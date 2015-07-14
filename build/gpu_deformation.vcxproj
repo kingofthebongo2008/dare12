@@ -155,6 +155,7 @@
     <ClInclude Include="..\include\os\windows\com_ptr.h" />
     <ClInclude Include="..\include\os\windows\dxgi_pointers.h" />
     <ClInclude Include="..\include\os\windows\wnd_application.h" />
+    <ClInclude Include="..\src\collision_detection.h" />
     <ClInclude Include="..\src\cuda_aabb.h" />
     <ClInclude Include="..\src\cuda_helper.h" />
     <ClInclude Include="..\src\cuda_imaging.h" />
