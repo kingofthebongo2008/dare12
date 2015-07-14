@@ -39,7 +39,7 @@ namespace freeform
     };
 
     uint32_t iterations = 0;
-    static uint32_t max_iterations = 700;// 160;
+    static uint32_t max_iterations = 5000;// 160;
     bool converged( thrust::device_vector<uint32_t>& stop )
     {
         using namespace thrust;

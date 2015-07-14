@@ -15,20 +15,20 @@ namespace math
 
     __device__  inline float lerp(float a, float b, float t)
     {
-        return a * t + (1 - t) * b;
+        return ( 1 - t ) * a  +  t * b;
     }
 
     //decasteljau algorithm for cubic bezier, for evaluating the curves
     __device__ inline float decasteljau_3(float4 points, float t)
     {
-        auto b0_0 = lerp( math::get_y(points), math::get_x(points), t);
-        auto b0_1 = lerp( math::get_z(points), math::get_y(points), t);
-        auto b0_2 = lerp( math::get_w(points), math::get_z(points), t);
+        auto b0_0 = lerp( math::get_x(points), math::get_y(points), t);
+        auto b0_1 = lerp( math::get_y(points), math::get_z(points), t);
+        auto b0_2 = lerp( math::get_z(points), math::get_w(points), t);
 
-        auto b1_0 = lerp(b0_1, b0_0, t);
-        auto b1_1 = lerp(b0_2, b0_1, t);
+        auto b1_0 = lerp(b0_0, b0_1, t);
+        auto b1_1 = lerp(b0_1, b0_2, t);
 
-        auto b2_0 = lerp(b1_1, b1_0, t);
+        auto b2_0 = lerp(b1_0, b1_1, t);
 
         return b2_0;
     }
@@ -40,11 +40,11 @@ namespace math
         auto b0_1 = math::get_y(points);
         auto b0_2 = math::get_z(points);
 
-        auto b1_0 = lerp(b0_1, b0_0, t);
-        auto b1_1 = lerp(b0_2, b0_1, t);
+        auto b1_0 = lerp(b0_0, b0_1, t);
+        auto b1_1 = lerp(b0_1, b0_2, t);
 
-        auto b2_0 = lerp(b1_1, b1_0, t);
-
+        auto b2_0 = lerp(b1_0, b1_1, t);
+        
         return b2_0;
     }
 

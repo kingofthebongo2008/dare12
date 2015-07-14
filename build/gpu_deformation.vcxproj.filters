@@ -253,6 +253,9 @@
     <ClInclude Include="..\src\patch2_rendering_application.h">
       <Filter>header files\rendering</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cuda_patches.h">
+      <Filter>header files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="readMe.txt" />

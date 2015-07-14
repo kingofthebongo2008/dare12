@@ -10,6 +10,11 @@ namespace freeform
 
         float m_min_y;
         float m_max_y;
+
+        __device__ __host__ aabb()
+        {
+
+        }
     };
 
     __device__ inline aabb make_aabb(const patch& p)

@@ -61,7 +61,7 @@ namespace freeform
     std::tuple< samples, patches  > inititialize_free_form(float center_image_x, float center_image_y, float radius, uint32_t patch_count);
     patches split(const patches& p, float pixel_size);
     patches flip( patches& p);
-    void    deform(const patches& p, const imaging::cuda_texture& grad, patches& deformed, thrust::device_vector<uint32_t>& stop );
+    void    deform(const patches& p, const imaging::cuda_texture& grad, patches& deformed, thrust::device_vector<uint32_t>& stop);
     bool    converged(thrust::device_vector<uint32_t>& stop);
 
     samples sample_patches(const patches& p);
@@ -87,10 +87,10 @@ int32_t main( int argc, char const* argv[] )
 
     fs::media_source source(L"../../../media/");
 
-    auto url0 = fs::build_media_url(source, L"basic2_obstacles.png");
-    auto url1 = fs::build_media_url(source, L"basic1_obstacles.png");
-    auto url2 = fs::build_media_url(source, L"basic2_obstacles_grayscale.png");
-    auto url3 = fs::build_media_url(source, L"basic2_obstacles_canny.png");
+    auto url0 = fs::build_media_url(source, L"essaisynth2.png");
+    auto url1 = fs::build_media_url(source, L"essaisynth1.png");
+    auto url2 = fs::build_media_url(source, L"essaisynth2_grayscale.png");
+    auto url3 = fs::build_media_url(source, L"essaisynth2_canny.png");
 
     //read the png texture
     auto texture = imaging::read_texture(url0.get_path());
@@ -118,7 +118,7 @@ int32_t main( int argc, char const* argv[] )
 
     auto pixel_size = std::max(1.0f / gray.get_width(), 1.0f / gray.get_height());
     auto radius = 20.0f * pixel_size;
-    auto patch_count = 100;
+    auto patch_count = 20;
 
     auto init = freeform::inititialize_free_form( center_image_x, center_image_y, radius, patch_count);
 
@@ -133,7 +133,9 @@ int32_t main( int argc, char const* argv[] )
     {
         old = split(deformed, pixel_size);
         old = flip(old);
+        
         freeform::deform(old, canny, deformed, stop);
+        freeform::display(gray, deformed);
         stop_iterations = freeform::converged(stop);
     }
 
