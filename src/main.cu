@@ -118,7 +118,7 @@ int32_t main( int argc, char const* argv[] )
 
     auto pixel_size = std::max(1.0f / gray.get_width(), 1.0f / gray.get_height());
     auto radius = 20.0f * pixel_size;
-    auto patch_count = 20;
+    auto patch_count = 10;
 
     auto init = freeform::inititialize_free_form( center_image_x, center_image_y, radius, patch_count);
 
@@ -135,7 +135,7 @@ int32_t main( int argc, char const* argv[] )
         old = flip(old);
         
         freeform::deform(old, canny, deformed, stop);
-        freeform::display(gray, deformed);
+        //freeform::display(gray, deformed);
         stop_iterations = freeform::converged(stop);
     }
 
