@@ -588,8 +588,6 @@ namespace freeform
 
                 if (!dresults_segment.empty())
                 {
-                    __debugbreak();
-
                     results_segment.resize(dresults_segment.size());
                     sort(dresults_segment.begin(), dresults_segment.end(), collision_result_sorter());
                     copy(dresults_segment.begin(), dresults_segment.end(), results_segment.begin());
@@ -615,13 +613,14 @@ namespace freeform
             std::vector<collision_result> test;
             std::vector<patch> h_results2;
 
-            //copy for debuggin
+            //copy for debugging
             {
                 test.resize(results_segment.size());
-
                 std::copy(results_segment.begin(), results_segment.end(), test.begin());
-                h_results2.resize(h_patches.size());
-                std::copy(h_patches.begin(), h_patches.end(), h_results2.begin());
+            }
+            if (test.size() > 1)
+            {
+                __debugbreak();
             }
 
             for (auto i = 0U; i < test.size(); ++i)
@@ -629,11 +628,23 @@ namespace freeform
                 auto r = test[i];
                 auto t = reorder(h_patches[ r.m_index_0], h_patches[r.m_index_1]);
 
-                
+                auto p = std::get<0>(t);
 
-                
+                auto c = h_patches[get_next(r.m_index_1, h_patches.size() )];
 
+                auto s = r.m_index_0 - 0 + h_patches.size() - r.m_index_1;
 
+                h_results2.resize(s);
+
+                std::copy(h_patches.begin(), h_patches.begin() + r.m_index_0 + 1, h_results2.begin());
+                std::copy(h_patches.begin() + r.m_index_1 + 1, h_patches.end(), h_results2.begin() + r.m_index_0 + 1 );
+
+                patches res;
+
+                res.resize(h_results2.size());
+                thrust::copy(h_results2.begin(), h_results2.end(), res.begin());
+
+                return res;
             }
 
             return p;
