@@ -157,8 +157,10 @@
     <ClInclude Include="..\include\os\windows\wnd_application.h" />
     <ClInclude Include="..\src\collision_detection.h" />
     <ClInclude Include="..\src\cuda_aabb.h" />
+    <ClInclude Include="..\src\cuda_collision_detection.h" />
     <ClInclude Include="..\src\cuda_helper.h" />
     <ClInclude Include="..\src\cuda_imaging.h" />
+    <ClInclude Include="..\src\cuda_math_2d.h" />
     <ClInclude Include="..\src\cuda_memory_helper.h" />
     <ClInclude Include="..\src\cuda_patches.h" />
     <ClInclude Include="..\src\cuda_print_utils.h" />

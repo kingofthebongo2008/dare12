@@ -259,6 +259,12 @@
     <ClInclude Include="..\src\collision_detection.h">
       <Filter>header files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cuda_collision_detection.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cuda_math_2d.h">
+      <Filter>header files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="readMe.txt" />

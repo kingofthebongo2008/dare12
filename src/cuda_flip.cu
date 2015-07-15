@@ -14,7 +14,8 @@
 #include "cuda_patches.h"
 #include "cuda_print_utils.h"
 
-#include "collision_detection.h"
+#include "cuda_collision_detection.h"
+#include "cuda_math_2d.h"
 
 namespace freeform
 {
@@ -136,51 +137,7 @@ namespace freeform
     }
     */
 
-    struct vector2
-    {
-        float x;
-        float y;
-    };
-
-    __device__ inline vector2 make_vector2(point a, point b)
-    {
-        vector2 r;
-
-        r.x = b.x - a.x;
-        r.y = b.y - a.y;
-
-        return r;
-    }
-
-    __device__ inline vector2 mul(float s, vector2 v)
-    {
-        vector2 r;
-        r.x = v.x * s;
-        r.y = v.y * s;
-        return r;
-    }
-
-    __device__ inline vector2 add(vector2 v1, vector2 v2)
-    {
-        vector2 r;
-        r.x = v1.x + v2.x;
-        r.y = v1.y + v2.y;
-        return r;
-    }
-
-    __device__ inline vector2 sub(vector2 v1, vector2 v2)
-    {
-        vector2 r;
-        r.x = v1.x + v2.x;
-        r.y = v1.y + v2.y;
-        return r;
-    }
-
-    __device__ inline float dot(vector2 v1, vector2 v2)
-    {
-        return v1.x * v2.x + v1.y * v2.y;
-    }
-
+    
     inline uint32_t get_next(uint32_t index, uint32_t n)
     {
         if (index < n - 1)
@@ -435,39 +392,152 @@ namespace freeform
         }
     };
 
-    static inline std::tuple<patch, patch> reorder(const patch& p0, const patch& p1)
+    static inline float project(vector2 u, vector2 v)
     {
-        patch r0;
-        patch r1;
+        float d = dot( u, v );
+        float n = dot( u, u );
 
-        r0.x0 = p0.x0;
-        r0.x1 = p0.x1;
-        r0.x2 = p1.x2;
-        r0.x3 = p1.x3;
+        return d / n;
+    }
 
-        r1.x0 = p0.x2;
-        r1.x1 = p0.x3;
-        r1.x2 = p1.x0;
-        r1.x3 = p1.x1;
+    namespace details
+    {
+        struct sorter
+        {
+            vector2 m_p03;
+            point   m_p0;
 
-        r0.y0 = p0.y0;
-        r0.y1 = p0.y1;
-        r0.y2 = p1.y2;
-        r0.y3 = p1.y3;
+            sorter(point p0, point p3) : m_p03(make_vector2( p0, p3 ) ) , m_p0(p0)
+            {
 
-        r1.y0 = p0.y2;
-        r1.y1 = p0.y3;
-        r1.y2 = p1.y0;
-        r1.y3 = p1.y1;
+            }
 
-        return std::make_tuple(r0, r1);
+            inline bool operator() ( point a, point b ) const
+            {
+                //project 4 points on p03
+                auto d0a = project(m_p03, make_vector2(m_p0, a));
+                auto d0b = project(m_p03, make_vector2(m_p0, b));
+
+                return abs(d0a) < abs(d0b);
+            }
+
+        };
+
+        template <typename t> inline std::tuple<point, point, point, point> sort4(point a, point b, point c, point d, t f)
+        {
+            point m[4] = { a, b, c, d };
+            
+            auto n = 4U;
+
+            do
+            {
+                auto new_n = 0;
+                for (auto i = 1U; i < 4U; ++i)
+                {
+                    if ( f ( m[i], m[i  -1 ] ) )
+                    {
+                        std::swap( m[i - 1], m[i] );
+                        new_n = i;
+                    }
+                }
+
+                n = new_n;
+            } while (n != 0);
+
+            return std::make_tuple(m[0], m[1], m[2], m[3]);
+        }
+
+        template <typename t> inline std::tuple<point, point> sort2(point a, point b, t f)
+        {
+            auto r = f (a, b);
+
+            if (r)
+            {
+                return std::make_tuple(a, b);
+            }
+            else
+            {
+                return std::make_tuple( b, a );
+            }
+        }
+    }
+    
+    static inline std::tuple<patch, patch> reorder(const patch& p, const patch& q)
+    {
+        //flip end control points
+        auto p0 = make_point(p.x0, p.y0);
+        auto p1 = make_point(p.x1, p.y1);
+        auto p2 = make_point(p.x2, p.y2);
+        auto p3 = make_point(p.x3, p.y3);
+
+        auto q0 = make_point(q.x0, q.y0);
+        auto q1 = make_point(q.x1, q.y1);
+        auto q2 = make_point(q.x2, q.y2);
+        auto q3 = make_point(q.x3, q.y3);
+
+        //now decide about the other points
+
+
+        //
+        auto r0 = p0;
+        auto r3 = q3;
+
+        auto s0 = q0;
+        auto s3 = p3;
+
+        //first phase
+        //project 4 points on p03
+        auto sd = details::sort4( p1, p2, q1, q2, details::sorter(p0, p3) );
+
+        //go to the first point
+        auto r_a = std::get<0>(sd);
+        auto r_b = std::get<1>(sd);
+
+        //go to the second point
+        auto q_a = std::get<2>(sd);
+        auto q_b = std::get<3>(sd);
+
+        //second phase
+        vector2 p03 = make_vector2(p0, q3);
+        auto sd1 = details::sort2(r_a, r_b, details::sorter(p0, q3));
+        auto sd2 = details::sort2(q_a, q_b, details::sorter(q0, p3));
+        
+        auto r1 = std::get<0>(sd1);
+        auto r2 = std::get<1>(sd1);
+
+        auto s1 = std::get<0>(sd2);
+        auto s2 = std::get<1>(sd2);
+
+        patch res0;
+        patch res1;
+
+        res0.x0 = r0.x;
+        res0.x1 = r1.x;
+        res0.x2 = r2.x;
+        res0.x3 = r3.x;
+
+        res0.y0 = r0.y;
+        res0.y1 = r1.y;
+        res0.y2 = r2.y;
+        res0.y3 = r3.y;
+
+        res1.x0 = s0.x;
+        res1.x1 = s1.x;
+        res1.x2 = s2.x;
+        res1.x3 = s3.x;
+
+        res1.y0 = s0.y;
+        res1.y1 = s1.y;
+        res1.y2 = s2.y;
+        res1.y3 = s3.y;
+        
+        return std::make_tuple(res0, res1);
     }
 
     patches flip(patches& p)
     {
         using namespace thrust;
        
-
         tabs t;
         auto s = p.size();
 
@@ -542,22 +612,28 @@ namespace freeform
             }
 
 
-
-
             std::vector<collision_result> test;
-            test.resize(results_segment.size());
-
-            std::copy(results_segment.begin(), results_segment.end(), test.begin());
-
             std::vector<patch> h_results2;
-            h_results2.resize(h_patches.size());
-            std::copy(h_patches.begin(), h_patches.end(), h_results2.begin());
+
+            //copy for debuggin
+            {
+                test.resize(results_segment.size());
+
+                std::copy(results_segment.begin(), results_segment.end(), test.begin());
+                h_results2.resize(h_patches.size());
+                std::copy(h_patches.begin(), h_patches.end(), h_results2.begin());
+            }
 
             for (auto i = 0U; i < test.size(); ++i)
             {
                 auto r = test[i];
                 auto t = reorder(h_patches[ r.m_index_0], h_patches[r.m_index_1]);
-                  
+
+                
+
+                
+
+
             }
 
             return p;

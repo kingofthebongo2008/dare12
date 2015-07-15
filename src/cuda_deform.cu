@@ -29,7 +29,7 @@ namespace freeform
         return math::set(p.y0, p.y1, p.y2, p.y3);
     }
 
-    __device__ inline point add(point a, point b)
+    __device__ __host__ inline point add(point a, point b)
     {
         point c;
 
@@ -38,7 +38,7 @@ namespace freeform
         return c;
     }
 
-    __device__ inline point sub(point a, point b)
+    __device__ __host__ inline point sub(point a, point b)
     {
         point c;
 
@@ -47,7 +47,7 @@ namespace freeform
         return c;
     }
 
-    __device__ inline point mul(point a, point b)
+    __device__ __host__ inline point mul(point a, point b)
     {
         point c;
 
@@ -57,7 +57,7 @@ namespace freeform
     }
 
 
-    __device__ inline point mul(float s, point b)
+    __device__ __host__ inline point mul(float s, point b)
     {
         point c;
 
@@ -66,7 +66,7 @@ namespace freeform
         return c;
     }
 
-    __device__ inline point mad(point a, point b, point c)
+    __device__ __host__ inline point mad(point a, point b, point c)
     {
         point d;
 
@@ -75,7 +75,7 @@ namespace freeform
         return d;
     }
 
-    __device__ inline point normalize(point a)
+    __device__ __host__ inline point normalize(point a)
     {
         float magnitude = a.x * a.x + a.y * a.y;
         float s = 1.0f / sqrtf(magnitude);
@@ -107,7 +107,7 @@ namespace freeform
         return r;
     }
 
-    __device__ inline float norm_l2_a(float x, float y)
+    __device__ __host__ inline float norm_l2(float x, float y)
     {
         return  sqrtf( x * x + y * y );
     }
@@ -115,10 +115,10 @@ namespace freeform
     //calculate normal vector of q cubic bezier poin, assumes in s are the tangent (derivative) values of the bezier curve
     __device__ inline sample normal_vector(const sample& s)
     {
-        float d0 = norm_l2_a(s.x0, s.y0);
-        float d1 = norm_l2_a(s.x1, s.y1);
-        float d2 = norm_l2_a(s.x2, s.y2);
-        float d3 = norm_l2_a(s.x3, s.y3);
+        float d0 = norm_l2(s.x0, s.y0);
+        float d1 = norm_l2(s.x1, s.y1);
+        float d2 = norm_l2(s.x2, s.y2);
+        float d3 = norm_l2(s.x3, s.y3);
 
         
         float mul0 = 1.0f / d0;
