@@ -26,7 +26,7 @@ namespace freeform
         return r;
     }
 
-    __device__ __host__ vector2 add(vector2 v1, vector2 v2)
+    __device__ __host__ inline vector2 add(vector2 v1, vector2 v2)
     {
         vector2 r;
         r.x = v1.x + v2.x;
