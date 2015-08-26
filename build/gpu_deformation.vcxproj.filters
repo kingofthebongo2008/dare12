@@ -265,6 +265,21 @@
     <ClInclude Include="..\src\cuda_math_2d.h">
       <Filter>header files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cuda_deform_normal_curve_points.h">
+      <Filter>source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cuda_deform_scatter_normals.h">
+      <Filter>source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cuda_deform_scatter_points.h">
+      <Filter>source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cuda_deform_gather_samples.h">
+      <Filter>source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cuda_deform_stitch_patches.h">
+      <Filter>source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="readMe.txt" />
@@ -295,6 +310,12 @@
       <Filter>source Files</Filter>
     </CudaCompile>
     <CudaCompile Include="..\src\cuda_samples.cu">
+      <Filter>source Files</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\src\cuda_flip2.cu">
+      <Filter>source Files</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\src\cuda_test.cu">
       <Filter>source Files</Filter>
     </CudaCompile>
   </ItemGroup>
