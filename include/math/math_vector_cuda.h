@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <type_traits>
 
 #include <device_functions.h>
 #include <vector_functions.h>

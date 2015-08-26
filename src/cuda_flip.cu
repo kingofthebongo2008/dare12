@@ -536,6 +536,7 @@ namespace freeform
 
     patches flip(patches& p)
     {
+        return p;
         using namespace thrust;
        
         tabs t;
@@ -609,7 +610,6 @@ namespace freeform
                 copy(p.begin(), p.end(), h_patches.begin());
             }
 
-
             std::vector<collision_result> test;
             std::vector<patch> h_results2;
 
@@ -630,24 +630,25 @@ namespace freeform
 
                 auto p = std::get<0>(t);
 
-                auto c = h_patches[get_next(r.m_index_1, h_patches.size() )];
-
                 auto s = r.m_index_0 - 0 + h_patches.size() - r.m_index_1;
 
                 h_results2.resize(s);
 
                 std::copy(h_patches.begin(), h_patches.begin() + r.m_index_0 + 1, h_results2.begin());
+
+                //h_results2[r.m_index_0 + 1] = p;
+
+
                 std::copy(h_patches.begin() + r.m_index_1 + 1, h_patches.end(), h_results2.begin() + r.m_index_0 + 1 );
-
-                patches res;
-
-                res.resize(h_results2.size());
-                thrust::copy(h_results2.begin(), h_results2.end(), res.begin());
-
-                return res;
             }
 
-            return p;
+            patches res;
+            res.resize(h_results2.size());
+            thrust::copy(h_results2.begin(), h_results2.end(), res.begin());
+
+            return res;
+
+//            return p;
         }
         else
         {

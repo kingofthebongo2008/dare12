@@ -1,178 +1,33 @@
 #include "precompiled.h"
 
-#include "freeform_patch.h"
-
+#include <algorithm>
 #include <thrust/transform.h>
 #include <thrust/sort.h>
 
+
 #include <math/math_vector.h>
+#include "freeform_patch.h"
+
 
 #include "math_functions.h"
+
 
 #include "cuda_imaging.h"
 #include "cuda_strided_range.h"
 #include "cuda_print_utils.h"
 #include "cuda_aabb.h"
 #include "cuda_patches.h"
+#include "cuda_points.h"
 
-#include <algorithm>
+#include "cuda_deform_scatter_normals.h"
+#include "cuda_deform_scatter_points.h"
+#include "cuda_deform_stitch_patches.h"
+#include "cuda_deform_gather_samples.h"
+#include "cuda_deform_normal_curve_points.h"
+
 
 namespace freeform
 {
-    __device__ inline float4 make_x(const patch& p)
-    {
-        return math::set(p.x0, p.x1, p.x2, p.x3);
-    }
-
-    __device__ inline float4 make_y(const patch& p)
-    {
-        return math::set(p.y0, p.y1, p.y2, p.y3);
-    }
-
-    __device__ __host__ inline point add(point a, point b)
-    {
-        point c;
-
-        c.x = a.x + b.x;
-        c.y = a.y + b.y;
-        return c;
-    }
-
-    __device__ __host__ inline point sub(point a, point b)
-    {
-        point c;
-
-        c.x = a.x - b.x;
-        c.y = a.y - b.y;
-        return c;
-    }
-
-    __device__ __host__ inline point mul(point a, point b)
-    {
-        point c;
-
-        c.x = a.x * b.x;
-        c.y = a.y * b.y;
-        return c;
-    }
-
-
-    __device__ __host__ inline point mul(float s, point b)
-    {
-        point c;
-
-        c.x = s * b.x;
-        c.y = s * b.y;
-        return c;
-    }
-
-    __device__ __host__ inline point mad(point a, point b, point c)
-    {
-        point d;
-
-        d.x = a.x * b.x + c.x;
-        d.y = a.y * b.y + c.y;
-        return d;
-    }
-
-    __device__ __host__ inline point normalize(point a)
-    {
-        float magnitude = a.x * a.x + a.y * a.y;
-        float s = 1.0f / sqrtf(magnitude);
-
-        return mul(s, a);
-    }
-
-    __device__ inline patch compute_derivatives(const patch& p)
-    {
-        float4 x = make_x(p);
-        float4 y = make_y(p);
-
-        //compute the control points of the derivative curve
-        float4 dx = math::cubic_bezier_derivative(x);
-        float4 dy = math::cubic_bezier_derivative(y);
-
-        patch r;
-
-        r.x0 = math::get_x(dx);
-        r.x1 = math::get_y(dx);
-        r.x2 = math::get_z(dx);
-        r.x3 = math::get_w(dx);
-
-        r.y0 = math::get_x(dy);
-        r.y1 = math::get_y(dy);
-        r.y2 = math::get_z(dy);
-        r.y3 = math::get_w(dy);
-
-        return r;
-    }
-
-    __device__ __host__ inline float norm_l2(float x, float y)
-    {
-        return  sqrtf( x * x + y * y );
-    }
-
-    //calculate normal vector of q cubic bezier poin, assumes in s are the tangent (derivative) values of the bezier curve
-    __device__ inline sample normal_vector(const sample& s)
-    {
-        float d0 = norm_l2(s.x0, s.y0);
-        float d1 = norm_l2(s.x1, s.y1);
-        float d2 = norm_l2(s.x2, s.y2);
-        float d3 = norm_l2(s.x3, s.y3);
-
-        
-        float mul0 = 1.0f / d0;
-        float mul1 = 1.0f / d1;
-        float mul2 = 1.0f / d2;
-        float mul3 = 1.0f / d3;
-        
-
-        //float mul0 = d0 < 0.0001f ? 0.0f: 1.0f / d0;
-        //float mul1 = d1 < 0.0001f ? 0.0f: 1.0f / d1;
-        //float mul2 = d2 < 0.0001f ? 0.0f: 1.0f / d2;
-        //float mul3 = d3 < 0.0001f ? 0.0f: 1.0f / d3;
-
-
-        //convert to union tangent vector
-        float x0 = s.x0 * mul0;
-        float x1 = s.x1 * mul1;
-        float x2 = s.x2 * mul2;
-        float x3 = s.x3 * mul3;
-
-        float y0 = s.y0 * mul0;
-        float y1 = s.y1 * mul1;
-        float y2 = s.y2 * mul2;
-        float y3 = s.y3 * mul3;
-
-        //obtain normal components as a rotation in the plane of the tangent components of 90 degrees
-        float n_x_0 = y0;
-        float n_y_0 = -x0;
-
-        float n_x_1 = y1;
-        float n_y_1 = -x1;
-
-        float n_x_2 = y2;
-        float n_y_2 = -x2;
-        
-        float n_x_3 = y3;
-        float n_y_3 = -x3;
-
-        sample r;
-
-        r.x0 = n_x_0;
-        r.x1 = n_x_1;
-        r.x2 = n_x_2;
-        r.x3 = n_x_3;
-
-        r.y0 = n_y_0;
-        r.y1 = n_y_1;
-        r.y2 = n_y_2;
-        r.y3 = n_y_3;
-
-        return r;
-
-    }
-
     __device__ inline sample mad(float4 gradient, const sample& s0, const sample& s1)
     {
         float4 x  = math::set(s0.x0, s0.x1, s0.x2, s0.x3);
@@ -199,90 +54,6 @@ namespace freeform
         r.y3 = math::get_w(dy);
         return r;
     }
-
-    struct normal_curve_points_kernel
-    {
-        __device__ sample  operator() ( const patch& p )
-        {
-            float4 t            = math::set(0.0f, 1.0f / 3.0f, 2.0f / 3.0f, 3.0f / 3.0f);
-
-            patch  derivative   = compute_derivatives(p);
-
-            sample s            = multi_eval_patch_3(p, t);             //sample the bezier curve
-            sample s_derivative = multi_eval_patch_2(derivative, t);    //sample the derivative
-            
-            sample normal       = normal_vector(s_derivative);
-
-            //float4 gradient     = math::set(100.0f,100.0f, 100.0f, 100.0f);
-
-            //displace points along the normals
-            //sample displaced    = mad(gradient, normal, s);
-
-            //sample the derivative of a patch and output 4 points along the normal
-            return normal;
-        }
-    };
-
-    struct scatter_normals_kernel
-    {
-        //scatter the samples into different points, so we can get them more parallel
-        template <typename t> __device__ void operator()( t& t)
-        {
-            sample p = thrust::get < 0 >(t);
-
-            point p0;
-            point p1;
-            point p2;
-            point p3;
-
-            p0.x = p.x0;
-            p1.x = p.x1;
-            p2.x = p.x2;
-            p3.x = p.x3;
-
-            p0.y = p.y0;
-            p1.y = p.y1;
-            p2.y = p.y2;
-            p3.y = p.y3;
-
-            thrust::get<1>(t) = p0;
-            thrust::get<2>(t) = p1;
-            thrust::get<3>(t) = p2;
-            thrust::get<4>(t) = p3;
-        }
-    };
-
-    struct scatter_points_kernel
-    {
-        //scatter the samples into different points, so we can get them more parallel
-        template <typename t> __device__ void operator()(t& tp)
-        {
-            patch p  = thrust::get < 0 >(tp);
-
-            float4 t = math::set(0.0f, 1.0f / 3.0f, 2.0f / 3.0f, 3.0f / 3.0f);
-            sample s = multi_eval_patch_3(p, t);             //sample the bezier curve
-
-            point p0;
-            point p1;
-            point p2;
-            point p3;
-
-            p0.x = s.x0;
-            p1.x = s.x1;
-            p2.x = s.x2;
-            p3.x = s.x3;
-
-            p0.y = s.y0;
-            p1.y = s.y1;
-            p2.y = s.y2;
-            p3.y = s.y3;
-
-            thrust::get<1>(tp) = p0;
-            thrust::get<2>(tp) = p1;
-            thrust::get<3>(tp) = p2;
-            thrust::get<4>(tp) = p3;
-        }
-    };
 
     struct deform_points_kernel2
     {
@@ -325,8 +96,7 @@ namespace freeform
             return  ul + 2 * um + ur - ll - 2 * lm - lr;
         }
 
-
-
+    
         __device__ thrust::tuple<point, uint8_t> operator() (const thrust::tuple < point, point> p)
         {
             using namespace cuda;
@@ -429,108 +199,7 @@ namespace freeform
         }
     };
 
-    struct gather_samples_kernel
-    {
-        __device__ patch operator() (const thrust::tuple< point, point, point, point, point, point, point, point, patch > & pt )
-        {
-            sample s;
-
-            //resampled points
-            point r0 = thrust::get<0>(pt);
-            point r1 = thrust::get<1>(pt);
-            point r2 = thrust::get<2>(pt);
-            point r3 = thrust::get<3>(pt);
-
-            point p0 = thrust::get<4>(pt);
-            point p1 = thrust::get<5>(pt);
-            point p2 = thrust::get<6>(pt);
-            point p3 = thrust::get<7>(pt);
-
-            //form delta of moved points
-            s.x0 = r0.x - p0.x;
-            s.x1 = r1.x - p1.x;
-            s.x2 = r2.x - p2.x;
-            s.x3 = r3.x - p3.x;
-
-            s.y0 = r0.y - p0.y;
-            s.y1 = r1.y - p1.y;
-            s.y2 = r2.y - p2.y;
-            s.y3 = r3.y - p3.y;
-
-            /*
-            s.x0 = fabs(s.x0) < 0.00001f ? 0.0f : s.x0;
-            s.x2 = fabs(s.x1) < 0.00001f ? 0.0f : s.x1;
-            s.x1 = fabs(s.x2) < 0.00001f ? 0.0f : s.x2;
-            s.x3 = fabs(s.x3) < 0.00001f ? 0.0f : s.x3;
-
-            s.y0 = fabs(s.y0) < 0.00001f ? 0.0f : s.y0;
-            s.y2 = fabs(s.y1) < 0.00001f ? 0.0f : s.y1;
-            s.y1 = fabs(s.y2) < 0.00001f ? 0.0f : s.y2;
-            s.y3 = fabs(s.y3) < 0.00001f ? 0.0f : s.y3;
-            */
-            
-            
-            //obtain delta of moved control points
-            patch r = interpolate_curve(s);
-
-            patch p = thrust::get<8>(pt);
-
-            patch res;
-
-            res.x0 = p.x0 + r.x0;
-            res.x1 = p.x1 + r.x1;
-            res.x2 = p.x2 + r.x2;
-            res.x3 = p.x3 + r.x3;
-
-            res.y0 = p.y0 + r.y0;
-            res.y1 = p.y1 + r.y1;
-            res.y2 = p.y2 + r.y2;
-            res.y3 = p.y3 + r.y3;
-
-
-            return res;
-        }
-    };
-
-
-    //ensure c0 continuity of the contour
-    struct average_points_kernel
-    {
-        thrust::device_ptr< point >     m_points_in;
-        thrust::device_ptr< point >     m_points_out;
-        uint32_t                        m_count;
-        
-
-        average_points_kernel(thrust::device_ptr<point> points_in, thrust::device_ptr<point> points_out, uint32_t count) :
-            m_points_in(points_in)
-            , m_points_out(points_out)
-            , m_count(count)
-        {
-
-        }
-
-        __device__ void operator() (uint32_t i) const
-        {
-            using namespace cuda;
-            auto i0 = 4 * i + 3;
-            auto i1 = 4 * i + 4;
-
-            if (i1 == 4 * m_count)
-            {
-                i1 = 0;
-            }
-
-            point n0 = m_points_in[i0];
-            point n1 = m_points_in[i1];
-
-            point n = mul(0.5, add(n0, n1));
-            
-            m_points_out[i0] = n;
-            m_points_out[i1] = n;
-
-        }
-    };
-
+    
 
     //sample the curve and obtain patches through curve interpolation as in the paper
     void deform( const patches& p, const imaging::cuda_texture& grad, patches& deformed, thrust::device_vector<uint32_t>& stop)

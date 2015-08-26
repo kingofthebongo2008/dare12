@@ -25,6 +25,8 @@
 
 #include <fs/fs_media.h>
 
+#include "gaussian_kernel.h"
+
 static void initialize_cuda()
 {
     sys::profile_timer timer;
@@ -86,17 +88,26 @@ int32_t main( int argc, char const* argv[] )
 
 
     fs::media_source source(L"../../../media/");
+    
     /*
     auto url0 = fs::build_media_url(source, L"essaisynth2.png");
     auto url1 = fs::build_media_url(source, L"essaisynth1.png");
     auto url2 = fs::build_media_url(source, L"essaisynth2_grayscale.png");
     auto url3 = fs::build_media_url(source, L"essaisynth2_canny.png");
     */
-
+    
+    /*
     auto url0 = fs::build_media_url(source, L"basic2_obstacles.png");
     auto url1 = fs::build_media_url(source, L"basic1_obstacles.png");
     auto url2 = fs::build_media_url(source, L"basic2_obstacles_grayscale.png");
     auto url3 = fs::build_media_url(source, L"basic2_obstacles_canny.png");
+    */
+
+    auto url0 = fs::build_media_url(source, L"circle.png");
+    auto url1 = fs::build_media_url(source, L"circle1_obstacles.png");
+    auto url2 = fs::build_media_url(source, L"circle_grayscale.png");
+    auto url3 = fs::build_media_url(source, L"circle_canny.png");
+
 
     //read the png texture
     auto texture = imaging::read_texture(url0.get_path());
@@ -141,7 +152,7 @@ int32_t main( int argc, char const* argv[] )
         old = flip(old);
         
         freeform::deform(old, canny, deformed, stop);
-        freeform::display(gray, deformed);
+        //freeform::display(gray, deformed);
         stop_iterations = freeform::converged(stop);
     }
 
