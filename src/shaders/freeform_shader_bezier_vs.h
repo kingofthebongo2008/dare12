@@ -110,7 +110,7 @@ namespace freeform
             return m_input_layout.get();
         }
 
-        operator const ID3D11InputLayout*() const
+        operator ID3D11InputLayout*() const
         {
             return m_input_layout.get();
         }

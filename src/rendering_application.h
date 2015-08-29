@@ -27,29 +27,6 @@
 
 namespace freeform
 {
-    inline d3d11::itexture2d_ptr create_texture(ID3D11Device* device, const imaging::cuda_texture& t)
-    {
-        D3D11_TEXTURE2D_DESC d = {};
-
-        d.Format = DXGI_FORMAT_R8_UNORM;
-        d.ArraySize = 1;
-        d.MipLevels = 1;
-        d.SampleDesc.Count = 1;
-        d.Height = t.get_height();
-        d.Width = t.get_width();
-        d.Usage = D3D11_USAGE_DEFAULT;
-        d.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-
-        auto proxy = t.get_pixels();
-
-        D3D11_SUBRESOURCE_DATA sd = {};
-
-        sd.pSysMem = proxy.get_pixels_cpu();
-        sd.SysMemPitch = t.get_pitch();
-        sd.SysMemSlicePitch = t.get_size();
-
-        return d3d11::create_texture_2d(device, &d, &sd);
-    }
 
     class rendering_application : public gx::default_application
     {
@@ -61,8 +38,6 @@ namespace freeform
             , m_d2d_factory(d2d::create_d2d_factory_single_threaded())
             , m_dwrite_factory(dwrite::create_dwrite_factory())
             , m_text_format(dwrite::create_text_format(m_dwrite_factory))
-            , m_full_screen_draw(m_context.m_device)
-            , m_copy_texture_ps(gx::create_shader_copy_texture_ps(m_context.m_device))
             , m_d2d_resource(gx::create_render_target_resource(m_context.m_device, 8, 8, DXGI_FORMAT_R8G8B8A8_UNORM))
             , m_opaque_state(gx::create_opaque_blend_state(m_context.m_device))
             , m_premultiplied_alpha_state(gx::create_premultiplied_alpha_blend_state(m_context.m_device))
@@ -162,8 +137,6 @@ namespace freeform
         d2d::isolid_color_brush_ptr             m_brush2;
         dwrite::itextformat_ptr                 m_text_format;
 
-        gx::full_screen_draw                    m_full_screen_draw;
-        gx::shader_copy_texture_ps              m_copy_texture_ps;
         d3d11::id3d11rendertargetview_ptr       m_back_buffer_render_target;
 
         d3d11::iblendstate_ptr                  m_opaque_state;

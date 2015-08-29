@@ -349,9 +349,19 @@ namespace d3d11
         gs_set_shader_resources( device_context, slot, 1, &shader_resource_view );
     }
     //----------------------------------------------------------------------------------------------------------
-    inline void gs_set_shader(ID3D11DeviceContext* device_context, ID3D11GeometryShader * vertex_shader )
+    inline void gs_set_shader(ID3D11DeviceContext* device_context, const ID3D11GeometryShader * vertex_shader )
     {
-        device_context->GSSetShader( vertex_shader, nullptr, 0) ;
+        device_context->GSSetShader(const_cast<ID3D11GeometryShader *> (vertex_shader), nullptr, 0);
+    }
+    //----------------------------------------------------------------------------------------------------------
+    inline void ds_set_shader(ID3D11DeviceContext* device_context, const ID3D11DomainShader * vertex_shader)
+    {
+        device_context->DSSetShader(const_cast<ID3D11DomainShader *> (vertex_shader), nullptr, 0);
+    }
+    //----------------------------------------------------------------------------------------------------------
+    inline void hs_set_shader(ID3D11DeviceContext* device_context, const ID3D11HullShader * vertex_shader)
+    {
+        device_context->HSSetShader(const_cast<ID3D11HullShader *> (vertex_shader), nullptr, 0);
     }
     //----------------------------------------------------------------------------------------------------------
     inline void cs_set_shader_resources(ID3D11DeviceContext* device_context, resource_slot slot, resource_count num_views, ID3D11ShaderResourceView * const * shader_resource_view)
@@ -573,22 +583,22 @@ namespace d3d11
         device_context->VSSetShader( vertex_shader, nullptr, 0) ;
     }
     //----------------------------------------------------------------------------------------------------------
-    inline void ps_set_shader_resources(ID3D11DeviceContext* device_context, resource_slot slot, resource_count num_views, ID3D11ShaderResourceView * const * shader_resource_view)
+    inline void ps_set_shader_resources(ID3D11DeviceContext* device_context, resource_slot slot, resource_count num_views, const ID3D11ShaderResourceView * const * shader_resource_view)
     {
-        device_context->PSSetShaderResources( slot, num_views, shader_resource_view);
+        device_context->PSSetShaderResources(slot, num_views, const_cast<ID3D11ShaderResourceView * const * > (shader_resource_view));
     }
     //----------------------------------------------------------------------------------------------------------
-    inline void ps_set_shader_resources(ID3D11DeviceContext* device_context, resource_count num_views, ID3D11ShaderResourceView * const * shader_resource_view)
+    inline void ps_set_shader_resources(ID3D11DeviceContext* device_context, resource_count num_views, const ID3D11ShaderResourceView * const * shader_resource_view)
     {
         ps_set_shader_resources( device_context, 0, num_views, shader_resource_view );
     }
     //----------------------------------------------------------------------------------------------------------
-    inline void ps_set_shader_resources(ID3D11DeviceContext* device_context, ID3D11ShaderResourceView * const shader_resource_view [] )
+    inline void ps_set_shader_resources(ID3D11DeviceContext* device_context, const ID3D11ShaderResourceView * const shader_resource_view [] )
     {
         ps_set_shader_resources( device_context, 0, sizeof( shader_resource_view ) / sizeof (shader_resource_view[0] ), &shader_resource_view[0] );
     }
     //----------------------------------------------------------------------------------------------------------
-    inline void ps_set_shader_resources(ID3D11DeviceContext* device_context, resource_slot slot, ID3D11ShaderResourceView * const shader_resource_view [] )
+    inline void ps_set_shader_resources(ID3D11DeviceContext* device_context, resource_slot slot, const ID3D11ShaderResourceView * const shader_resource_view [] )
     {
         ps_set_shader_resources( device_context, slot, sizeof( shader_resource_view ) / sizeof (shader_resource_view[0] ), &shader_resource_view[0] );
     }
@@ -604,41 +614,41 @@ namespace d3d11
         ps_set_shader_resources( device_context, 0, begin, end );
     }
     //----------------------------------------------------------------------------------------------------------
-    inline void ps_set_shader_resources(ID3D11DeviceContext* device_context, resource_slot slot, ID3D11ShaderResourceView * const resource_0, ID3D11ShaderResourceView * const resource_1, ID3D11ShaderResourceView * const resource_2 )
+    inline void ps_set_shader_resources(ID3D11DeviceContext* device_context, resource_slot slot, const ID3D11ShaderResourceView * const resource_0, const ID3D11ShaderResourceView * const resource_1, const ID3D11ShaderResourceView * const resource_2)
     {
-        ID3D11ShaderResourceView * const resources[3] = { resource_0 , resource_1, resource_2};
+        ID3D11ShaderResourceView * const resources[3] = { const_cast<ID3D11ShaderResourceView*> (resource_0), const_cast<ID3D11ShaderResourceView*> (resource_1), const_cast<ID3D11ShaderResourceView*> (resource_2) };
         ps_set_shader_resources( device_context, slot,  resources);
     }
     //----------------------------------------------------------------------------------------------------------
-    inline void ps_set_shader_resources(ID3D11DeviceContext* device_context, resource_slot slot, ID3D11ShaderResourceView * const resource_0, ID3D11ShaderResourceView * const resource_1)
+    inline void ps_set_shader_resources(ID3D11DeviceContext* device_context, resource_slot slot, const ID3D11ShaderResourceView * const resource_0, const ID3D11ShaderResourceView * const resource_1)
     {
-        ID3D11ShaderResourceView * const resources[2] = { resource_0 , resource_1};
+        ID3D11ShaderResourceView * const resources[2] = { const_cast<ID3D11ShaderResourceView*> (resource_0), const_cast<ID3D11ShaderResourceView*> (resource_1) };
         ps_set_shader_resources( device_context, slot,  resources);
     }
     //----------------------------------------------------------------------------------------------------------
-    inline void ps_set_shader_resources(ID3D11DeviceContext* device_context, ID3D11ShaderResourceView * const resource_0, ID3D11ShaderResourceView * const resource_1, ID3D11ShaderResourceView * const resource_2 )
+    inline void ps_set_shader_resources(ID3D11DeviceContext* device_context, const ID3D11ShaderResourceView * const resource_0, const ID3D11ShaderResourceView * const resource_1, const ID3D11ShaderResourceView * const resource_2 )
     {
         ps_set_shader_resources(device_context, 0, resource_0, resource_1, resource_2 );
     }
     //----------------------------------------------------------------------------------------------------------
-    inline void ps_set_shader_resources(ID3D11DeviceContext* device_context, ID3D11ShaderResourceView * const resource_0, ID3D11ShaderResourceView * const resource_1)
+    inline void ps_set_shader_resources(ID3D11DeviceContext* device_context, const ID3D11ShaderResourceView * const resource_0, ID3D11ShaderResourceView * const resource_1)
     {
         ps_set_shader_resources(device_context, 0, resource_0, resource_1 );
     }
     //----------------------------------------------------------------------------------------------------------
-    inline void ps_set_shader_resource(ID3D11DeviceContext* device_context, ID3D11ShaderResourceView * const shader_resource_view)
+    inline void ps_set_shader_resource(ID3D11DeviceContext* device_context, const ID3D11ShaderResourceView * const shader_resource_view)
     {
         ps_set_shader_resources( device_context, 0, 1, &shader_resource_view );
     }
     //----------------------------------------------------------------------------------------------------------
-    inline void ps_set_shader_resource(ID3D11DeviceContext* device_context, resource_slot slot, ID3D11ShaderResourceView * const shader_resource_view)
+    inline void ps_set_shader_resource(ID3D11DeviceContext* device_context, resource_slot slot, const ID3D11ShaderResourceView * const shader_resource_view)
     {
         ps_set_shader_resources( device_context, slot, 1, &shader_resource_view );
     }
     //----------------------------------------------------------------------------------------------------------
-    inline void ps_set_shader(ID3D11DeviceContext* device_context, ID3D11PixelShader * const pixel_shader )
+    inline void ps_set_shader(ID3D11DeviceContext* device_context, const ID3D11PixelShader * const pixel_shader )
     {
-        device_context->PSSetShader( pixel_shader, nullptr, 0) ;
+        device_context->PSSetShader(const_cast< ID3D11PixelShader * const > (pixel_shader), nullptr, 0);
     }
     //----------------------------------------------------------------------------------------------------------
     inline void ps_set_sampler_states(ID3D11DeviceContext* device_context, resource_slot slot, resource_count count, ID3D11SamplerState* const* samplers )
@@ -690,22 +700,23 @@ namespace d3d11
         ps_set_sampler_states(device_context, slot, 1, &sampler);
     }
     //----------------------------------------------------------------------------------------------------------
-    inline void ia_set_input_layout(ID3D11DeviceContext* device_context, ID3D11InputLayout * const layout)
+    inline void ia_set_input_layout(ID3D11DeviceContext* device_context, const ID3D11InputLayout * const layout)
     {
-        device_context->IASetInputLayout( layout );
+        device_context->IASetInputLayout( const_cast<ID3D11InputLayout *> (layout));
     }
     //----------------------------------------------------------------------------------------------------------
-    inline void ia_set_vertex_buffer( ID3D11DeviceContext* device_context, resource_slot slot, ID3D11Buffer* const buffer, uint32_t stride, uint32_t offset )
+    inline void ia_set_vertex_buffer( ID3D11DeviceContext* device_context, resource_slot slot, const ID3D11Buffer* const buffer, uint32_t stride, uint32_t offset )
     {
-        device_context->IASetVertexBuffers ( slot, 1, &buffer , &stride, &offset );
+        auto t = (const_cast<ID3D11Buffer* const> (buffer));
+        device_context->IASetVertexBuffers(slot, 1, &t, &stride, &offset);
     }
     //----------------------------------------------------------------------------------------------------------
-    inline void ia_set_vertex_buffer( ID3D11DeviceContext* device_context, ID3D11Buffer* const buffer, uint32_t stride, uint32_t offset )
+    inline void ia_set_vertex_buffer( ID3D11DeviceContext* device_context, const ID3D11Buffer* const buffer, uint32_t stride, uint32_t offset )
     {
         ia_set_vertex_buffer( device_context, 0, buffer, stride, offset );
     }
     //----------------------------------------------------------------------------------------------------------
-    inline void ia_set_vertex_buffer( ID3D11DeviceContext* device_context, ID3D11Buffer* const buffer, uint32_t stride )
+    inline void ia_set_vertex_buffer( ID3D11DeviceContext* device_context, const ID3D11Buffer* const buffer, uint32_t stride )
     {
         ia_set_vertex_buffer(device_context, buffer, stride, 0 );
     }

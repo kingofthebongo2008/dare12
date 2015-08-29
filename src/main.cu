@@ -1,5 +1,6 @@
 #include "precompiled.h"
 
+
 #include <chrono>
 #include <cstdint>
 #include <memory>
@@ -26,6 +27,8 @@
 #include <fs/fs_media.h>
 
 #include "gaussian_kernel.h"
+
+
 
 static void initialize_cuda()
 {
@@ -70,6 +73,7 @@ namespace freeform
 
     void display( const imaging::cuda_texture& t, const patches& p );
     void display(const imaging::cuda_texture& t,  const samples& p );
+    void display( const imaging::cuda_texture& t);
 }
 
 inline std::ostream& operator<<(std::ostream& s, const float4& p)
@@ -112,7 +116,6 @@ int32_t main( int argc, char const* argv[] )
     //read the png texture
     auto texture = imaging::read_texture(url0.get_path());
     auto pixels  = texture.get_pixels();
-
 
     //copy the png texture to the gpu
     auto memory_buffer = cuda::make_memory_buffer( texture.get_size(), pixels.get_pixels_cpu() );
@@ -162,7 +165,7 @@ int32_t main( int argc, char const* argv[] )
     //display the results
     //freeform::display(gray, std::get<1>(init));
     //freeform::display(gray, freeform::sample_patches(deformed));
-    freeform::display(gray, deformed);
+    //freeform::display(gray, deformed);
 
     return 0;
 

@@ -2,45 +2,37 @@
 
 #include "rendering_application.h"
 
-#include "shaders/freeform_shader_samples_vs.h"
-#include "shaders/freeform_shader_samples_ps.h"
-
 namespace freeform
 {
+    namespace details
+    {
+        std::vector< render_item_handle> create_render_items(ID3D11Device* device, ID3D11DeviceContext* context, const std::vector< std::shared_ptr<render_item_creator> >& items )
+        {
+            std::vector< render_item_handle> render_items;
+
+            for_each(std::cbegin(items), std::cend(items), [device, context, &render_items](const std::shared_ptr<render_item_creator> & c)
+            {
+                render_items.push_back(c->create(device, context));
+
+            });
+
+            return std::move(render_items);
+        }
+    }
+
     class sample_application : public rendering_application
     {
         typedef rendering_application base;
 
     public:
 
-        sample_application(const wchar_t* window_title, const imaging::cuda_texture& t, const graphic::patch_draw_info& gdi, const graphic::transform_info& transform_info) : base(window_title)
-            , m_texture(create_texture(m_context.m_device, t))
-            , m_texture_view(d3d11::create_shader_resource_view(m_context.m_device, m_texture))
-            , m_transform_info(transform_info)
-            , m_transform_buffer(d3d11::create_constant_buffer(m_context.m_device, sizeof(graphic::transform_info)))
+        sample_application(const wchar_t* window_title, const std::vector< std::shared_ptr<render_item_creator> >& items) : base(window_title)
+        , m_render_items (std::move(details::create_render_items(m_context.m_device.get(), m_context.m_immediate_context.get(), items)))
         {
-
-            auto r0 = create_shader_samples_vs_async(m_context.m_device);
-            auto r3 = create_shader_samples_ps_async(m_context.m_device);
-
-            r0.wait();
-            r3.wait();
-
-            m_samples_vs = std::move(r0.get());
-            m_samples_ps = std::move(r3.get());
-
-            m_samples_ia_layout = std::move(shader_samples_layout(m_context.m_device.get(), m_samples_vs));
-            m_control_points_buffer = d3d11::create_default_vertex_buffer(m_context.m_device.get(), gdi.get_patches(), graphic::get_patch_size(gdi));
-            m_control_points_count = gdi.get_count();
-            gx::constant_buffer_update(m_context.m_immediate_context, m_transform_buffer, m_transform_info);
+            
         }
 
     protected:
-        virtual void on_render_scene()
-        {
-
-        }
-
         void render_scene()
         {
             on_render_scene();
@@ -82,8 +74,6 @@ namespace freeform
             //set render target as the back buffer, goes to the operating system
             d3d11::om_set_render_target(device_context, m_back_buffer_render_target);
 
-            on_render_scene();
-
             //set a view port for rendering
             D3D11_VIEWPORT v = m_view_port;
             device_context->RSSetViewports(1, &v);
@@ -92,63 +82,27 @@ namespace freeform
             const float fraction = 25.0f / 128.0f;
             d3d11::clear_render_target_view(device_context, m_back_buffer_render_target, math::set(fraction, fraction, fraction, 1.0f));
 
-            //compose direct2d render target over the back buffer by rendering full screen quad that copies one texture onto another with alpha blending
-            d3d11::ps_set_shader(device_context, m_copy_texture_ps);
-            d3d11::ps_set_shader_resource(device_context, m_texture_view);
-            d3d11::ps_set_sampler_state(device_context, m_point_sampler);
+            on_render_scene();
+        }
 
-            //cull all back facing triangles
-            d3d11::rs_set_state(device_context, m_cull_back_raster_state);
-
-            d3d11::om_set_blend_state(device_context, m_premultiplied_alpha_state);
-
-            //disable depth culling
-            d3d11::om_set_depth_state(device_context, m_depth_disable_state);
-            m_full_screen_draw.draw(device_context);
-
-            d3d11::om_set_blend_state(device_context, m_opaque_state);
-
-
-            uint32_t strides[] = { 2 * sizeof(float) }; // 3 dimensions per control point (x,y,z)
-            uint32_t offsets[] = { 0 };
-
-            device_context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINESTRIP);
-            device_context->IASetInputLayout(m_samples_ia_layout);
-
-            ID3D11Buffer* buffers[] =
-            {
-                m_control_points_buffer.get()
+        virtual void on_render_scene()
+        {
+            render_context ctx = { m_opaque_state, m_premultiplied_alpha_state,
+                m_alpha_blend_state, m_cull_back_raster_state,
+                m_cull_none_raster_state, m_depth_disable_state,
+                m_point_sampler
             };
 
-            device_context->IASetVertexBuffers(0, 1, buffers, strides, offsets);
-
-
-            device_context->VSSetShader(m_samples_vs, nullptr, 0);
-            device_context->PSSetShader(m_samples_ps, nullptr, 0);
-            device_context->GSSetShader(nullptr, nullptr, 0);
-
-            ID3D11Buffer* cbuffers[] =
+            auto device_context = m_context.m_immediate_context.get();
+            std::for_each(std::begin(m_render_items), std::end(m_render_items), [&ctx, device_context]( const render_item_handle& handle)
             {
-                m_transform_buffer.get()
-            };
-
-            device_context->VSSetConstantBuffers(0, 1, cbuffers);
-
-            device_context->Draw(m_control_points_count * 4, 0);
+                handle->draw(&ctx, device_context);
+            });
         }
 
     protected:
 
-        d3d11::itexture2d_ptr                   m_texture;
-        d3d11::ishaderresourceview_ptr          m_texture_view;
+        std::vector< render_item_handle> m_render_items;
 
-        shader_samples_vs                       m_samples_vs;
-        d3d11::ipixelshader_ptr                 m_samples_ps;
-        d3d11::ibuffer_ptr                      m_control_points_buffer;
-        size_t                                  m_control_points_count;
-        d3d11::ibuffer_ptr                      m_transform_buffer;
-
-        graphic::transform_info                 m_transform_info;
-        shader_samples_layout                   m_samples_ia_layout;
     };
 }

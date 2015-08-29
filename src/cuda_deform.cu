@@ -108,7 +108,7 @@ namespace freeform
             auto h = m_sampler.height();
 
             auto pixel_size = max(1.0f / w, 1.0f / h);
-            auto pixel_size_y = 1.0f / h;
+            
             auto scale = 1.5f;
             auto k1 = make_point(scale * pixel_size, scale * pixel_size);   //adjust this for faster convergence
 

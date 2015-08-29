@@ -26,8 +26,8 @@ namespace gx
             return shader;
         }
     }
-
-    std::future< d3d11::ipixelshader_ptr > create_shader_copy_texture_ps_async( ID3D11Device* device )
+    
+    inline std::future< d3d11::ipixelshader_ptr > create_shader_copy_texture_ps_async( ID3D11Device* device )
     {
         return std::async( std::launch::async, details::create_shader_copy_texture_ps, device );
     }

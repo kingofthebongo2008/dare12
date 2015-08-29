@@ -1,4 +1,6 @@
 #include "precompiled.h"
+#include "rendering_render_item_patch.h"
+
 #include "patch_rendering_application.h"
 #include "sample_rendering_application.h"
 
@@ -6,6 +8,10 @@
 
 #include "freeform_patch.h"
 #include "graphic_types.h"
+
+#include "rendering_render_item_texture.h"
+#include "rendering_render_item_sample.h"
+#include "rendering_render_item_patch.h"
 
 
 namespace freeform
@@ -38,13 +44,34 @@ namespace freeform
 
     void display(const imaging::cuda_texture& t, const thrust::host_vector<patch>& p, const graphic::transform_info& transform)
     {
-        std::unique_ptr< rendering_application >  app(new patch_application(L"Patches", t, create_draw_info<freeform::patch>(p), transform));
+        std::vector < std::shared_ptr<render_item_creator> > items;
+
+        items.push_back(std::make_shared< render_item_creator_texture >(t));
+        items.push_back(std::make_shared< render_item_creator_patch >(create_draw_info<freeform::patch>(p), transform));
+
+        std::unique_ptr< rendering_application >  app(new sample_application(L"Patches", items));
         app->run();
     }
 
     void display(const imaging::cuda_texture& t, const thrust::host_vector<sample>& p, const graphic::transform_info& transform)
     {
-        std::unique_ptr< rendering_application >  app(new sample_application(L"Samples", t, create_draw_info<freeform::sample>(p), transform));
+        std::vector < std::shared_ptr<render_item_creator> > items;
+
+        items.push_back(std::make_shared< render_item_creator_texture >(t));
+        items.push_back(std::make_shared< render_item_creator_sample >(create_draw_info<freeform::sample>(p), transform));
+
+        std::unique_ptr< rendering_application >  app(new sample_application(L"Samples", items));
+        app->run();
+
+    }
+
+    void display(const imaging::cuda_texture& t)
+    {
+        std::vector < std::shared_ptr<render_item_creator> > items;
+
+        items.push_back(std::make_shared< render_item_creator_texture >(t) );
+
+        std::unique_ptr< rendering_application >  app(new sample_application(L"Samples", items ));
         app->run();
     }
 

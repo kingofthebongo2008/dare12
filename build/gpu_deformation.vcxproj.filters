@@ -50,6 +50,9 @@
     <ClCompile Include="..\include\math\math_half.cpp">
       <Filter>header files\include\math</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\test.cpp">
+      <Filter>source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\precompiled.h">
@@ -278,6 +281,18 @@
       <Filter>source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cuda_deform_stitch_patches.h">
+      <Filter>source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\rendering_render_item.h">
+      <Filter>source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\rendering_render_item_texture.h">
+      <Filter>source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\rendering_render_item_sample.h">
+      <Filter>source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\rendering_render_item_patch.h">
       <Filter>source Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -207,6 +207,7 @@
     <ClCompile Include="..\include\math\math_half.cpp" />
     <ClCompile Include="..\src\precompiled.cpp" />
     <ClCompile Include="..\src\rendering_application.cpp" />
+    <ClCompile Include="..\src\test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\d3d11\d3d11_error.h" />
@@ -276,6 +277,10 @@
     <ClInclude Include="..\src\precompiled.h" />
     <ClInclude Include="..\src\rendering.h" />
     <ClInclude Include="..\src\rendering_application.h" />
+    <ClInclude Include="..\src\rendering_render_item.h" />
+    <ClInclude Include="..\src\rendering_render_item_patch.h" />
+    <ClInclude Include="..\src\rendering_render_item_sample.h" />
+    <ClInclude Include="..\src\rendering_render_item_texture.h" />
     <ClInclude Include="..\src\sample_rendering_application.h" />
     <ClInclude Include="..\src\shaders\freeform_shaders_struct.h" />
     <ClInclude Include="..\src\shaders\freeform_shader_bezier_ds.h" />
