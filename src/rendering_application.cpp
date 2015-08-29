@@ -1,8 +1,7 @@
 #include "precompiled.h"
 #include "rendering_render_item_patch.h"
 
-#include "patch_rendering_application.h"
-#include "sample_rendering_application.h"
+#include "rendering_application_sample.h"
 
 #include "imaging_utils.h"
 
