@@ -23,10 +23,11 @@
 #include "freeform_patch.h"
 #include "graphic_types.h"
 
-
 #include <fs/fs_media.h>
 
 #include "gaussian_kernel.h"
+
+#include "cuda_texture_utils.h"
 
 
 
@@ -141,6 +142,10 @@ int32_t main( int argc, char const* argv[] )
     auto patch_count = 20;
 
     auto init = freeform::inititialize_free_form( center_image_x, center_image_y, radius, patch_count);
+
+    auto tex = cuda::create_texture<imaging::image_type::rgb>(320, 240);
+
+    freeform::display(t);
 
     //deform the patches along the normal
 

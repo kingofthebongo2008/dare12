@@ -30,6 +30,15 @@ namespace imaging
         return 32;
     }
 
+    template <image_type t> inline uint32_t get_pitch(uint32_t width)
+    {
+        return  (get_bpp<t>() * width + 7) / 8;
+    }
+
+    template <image_type t> inline uint32_t get_size(uint32_t width, uint32_t height)
+    {
+        return  get_pitch<t>(width) * height;
+    }
 
     template <typename pixels_storage>
     class texture : public pixels_storage

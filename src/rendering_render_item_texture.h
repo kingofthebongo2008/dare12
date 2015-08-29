@@ -14,11 +14,23 @@
 
 namespace freeform
 {
+    DXGI_FORMAT translate_format(imaging::image_type t)
+    {
+        switch (t)
+        {
+            case imaging::image_type::grayscale:    return DXGI_FORMAT_R8_UNORM;
+            case imaging::image_type::rgb:          return DXGI_FORMAT_B8G8R8X8_UNORM;
+            case imaging::image_type::float32:      return DXGI_FORMAT_R32_FLOAT;
+            default:    return DXGI_FORMAT_R8_UNORM;
+        }
+    }
+
+
     inline d3d11::itexture2d_ptr create_texture(ID3D11Device* device, const imaging::cuda_texture& t)
     {
         D3D11_TEXTURE2D_DESC d = {};
 
-        d.Format = DXGI_FORMAT_R8_UNORM;
+        d.Format = translate_format( t.get_image_type() );
         d.ArraySize = 1;
         d.MipLevels = 1;
         d.SampleDesc.Count = 1;

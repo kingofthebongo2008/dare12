@@ -263,6 +263,7 @@
     <ClInclude Include="..\src\cuda_patches.h" />
     <ClInclude Include="..\src\cuda_print_utils.h" />
     <ClInclude Include="..\src\cuda_strided_range.h" />
+    <ClInclude Include="..\src\cuda_texture_utils.h" />
     <ClInclude Include="..\src\distance.h" />
     <ClInclude Include="..\src\freeform_patch.h" />
     <ClInclude Include="..\src\graphic_types.h" />

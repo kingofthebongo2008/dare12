@@ -295,6 +295,9 @@
     <ClInclude Include="..\src\rendering_render_item_patch.h">
       <Filter>source Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cuda_texture_utils.h">
+      <Filter>header files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="readMe.txt" />
@@ -335,7 +338,6 @@
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="..\include\gx\shaders\gx_shader_full_screen_vs.hlsl" />
     <FxCompile Include="..\src\shaders\freeform_shader_bezier_hs.hlsl">
       <Filter>source Files\shaders</Filter>
     </FxCompile>
@@ -355,6 +357,9 @@
       <Filter>source Files\shaders</Filter>
     </FxCompile>
     <FxCompile Include="..\include\gx\shaders\gx_shader_copy_texture_ps.hlsl">
+      <Filter>source Files\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\include\gx\shaders\gx_shader_full_screen_vs.hlsl">
       <Filter>source Files\shaders</Filter>
     </FxCompile>
   </ItemGroup>
