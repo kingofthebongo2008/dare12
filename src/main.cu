@@ -127,9 +127,11 @@ int32_t main( int argc, char const* argv[] )
     auto gray   = freeform::create_grayscale_texture(t);
     auto canny  = freeform::create_canny_texture(gray, 0.05f);
 
-    imaging::write_texture( texture,    url1.get_path() );
-    imaging::write_texture( gray,       url2.get_path() );
-    imaging::write_texture( canny,      url3.get_path() );
+    freeform::display(canny);
+
+    //imaging::write_texture( texture,    url1.get_path() );
+    //imaging::write_texture( gray,       url2.get_path() );
+    //imaging::write_texture( canny,      url3.get_path() );
 
     //filter out the records that match the composite criteria
     std::chrono::steady_clock::time_point start1 = std::chrono::steady_clock::now();
@@ -142,10 +144,6 @@ int32_t main( int argc, char const* argv[] )
     auto patch_count = 20;
 
     auto init = freeform::inititialize_free_form( center_image_x, center_image_y, radius, patch_count);
-
-    auto tex = cuda::create_texture<imaging::image_type::rgb>(320, 240);
-
-    freeform::display(t);
 
     //deform the patches along the normal
 
@@ -160,7 +158,7 @@ int32_t main( int argc, char const* argv[] )
         old = flip(old);
         
         freeform::deform(old, canny, deformed, stop);
-        //freeform::display(gray, deformed);
+        freeform::display(gray, deformed);
         stop_iterations = freeform::converged(stop);
     }
 

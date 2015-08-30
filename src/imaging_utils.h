@@ -64,6 +64,11 @@ namespace imaging
             formatGUID = formatGUID_required = GUID_WICPixelFormat8bppGray;
         }
         break;
+        case float32:
+        {
+            formatGUID = formatGUID_required = GUID_WICPixelFormat32bppGrayFloat;
+        }
+        break;
         }
 
 

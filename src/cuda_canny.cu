@@ -21,26 +21,23 @@ namespace freeform
     }
 
     __device__ static inline uint8_t    compute_sobel(
-        uint8_t ul, // upper left
-        uint8_t um, // upper middle
-        uint8_t ur, // upper right
-        uint8_t ml, // middle left
-        uint8_t mm, // middle (unused)
-        uint8_t mr, // middle right
-        uint8_t ll, // lower left
-        uint8_t lm, // lower middle
-        uint8_t lr, // lower right
-        float scale)
+        float   ul, // upper left
+        float  um, // upper middle
+        float  ur, // upper right
+        float  ml, // middle left
+        float  mm, // middle (unused)
+        float  mr, // middle right
+        float  ll, // lower left
+        float  lm, // lower middle
+        float  lr  // lower right
+        )
     {
-        int32_t horizontal  = ur + 2 * mr + lr - ul - 2 * ml - ll;
-        int32_t vertical    = ul + 2 * um + ur - ll - 2 * lm - lr;
+        float   horizontal  = ur + 2 * mr + lr - ul - 2 * ml - ll;
+        float   vertical    = ul + 2 * um + ur - ll - 2 * lm - lr;
 
-        int32_t sum = static_cast<int16_t> (scale * ( abs(horizontal) + abs(vertical) ) ) ;
+        float   gradient = sqrt(horizontal * horizontal + vertical * vertical);
 
-        sum = max( sum, 0);
-        sum = min( sum, 0xff);
-
-        return static_cast<uint8_t> (sum);
+        return  gradient;
     }
 
 
@@ -52,7 +49,6 @@ namespace freeform
 
         if (is_in_interior(src, x, y))
         {
-
             const uint8_t* pix00 = sample_2d< uint8_t, border_type::clamp >(img_in, src, x - 1, y - 1 );
             const uint8_t* pix01 = sample_2d< uint8_t, border_type::clamp >(img_in, src, x - 0, y - 1);
             const uint8_t* pix02 = sample_2d< uint8_t, border_type::clamp >(img_in, src, x + 1, y - 1);
@@ -66,27 +62,26 @@ namespace freeform
             const uint8_t* pix21 = sample_2d< uint8_t, border_type::clamp >(img_in, src, x - 0, y + 1);
             const uint8_t* pix22 = sample_2d< uint8_t, border_type::clamp >(img_in, src, x + 1, y + 1);
 
-            auto  u00 = *pix00;
-            auto  u01 = *pix01;
-            auto  u02 = *pix02;
+            auto  u00 = *pix00 / 255.0f;
+            auto  u01 = *pix01 / 255.0f;
+            auto  u02 = *pix02 / 255.0f;
 
-            auto  u10 = *pix10;
-            auto  u11 = *pix11;
-            auto  u12 = *pix12;
+            auto  u10 = *pix10 / 255.0f;
+            auto  u11 = *pix11 / 255.0f;
+            auto  u12 = *pix12 / 255.0f;
 
-            auto  u20 = *pix20;
-            auto  u21 = *pix21;
-            auto  u22 = *pix22;
+            auto  u20 = *pix20 / 255.0f;
+            auto  u21 = *pix21 / 255.0f;
+            auto  u22 = *pix22 / 255.0f;
 
 
             auto  r = compute_sobel(
                 u00, u01, u02,
                 u10, u11, u12,
-                u20, u21, u22, 1.0f
+                u20, u21, u22
                 );
             
-            write_2d<uint8_t>(img_out, dst, x, y, r );
-
+            write_2d<float>(img_out, dst, x, y, r );
         }
     }
 
@@ -95,7 +90,7 @@ namespace freeform
         using namespace cuda;
         auto width = texture_grayscale.get_width();
         auto height = texture_grayscale.get_height();
-        auto t = cuda::create_cuda_texture<imaging::image_type::grayscale>(width, height);
+        auto t = cuda::create_cuda_texture<imaging::image_type::float32>(width, height);
 
         auto params     = create_texture_kernel_params(width, height);
 

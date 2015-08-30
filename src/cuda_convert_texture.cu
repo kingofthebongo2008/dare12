@@ -117,17 +117,17 @@ namespace freeform
             auto x = d0.x * w;
             auto y = d0.y * h;
 
-            const auto* pix00 = sample_2d< float, border_type::clamp >(m_grad, m_sampler, x - 1, y - 1);
-            const auto* pix01 = sample_2d< float, border_type::clamp >(m_grad, m_sampler, x - 0, y - 1);
-            const auto* pix02 = sample_2d< float, border_type::clamp >(m_grad, m_sampler, x + 1, y - 1);
+            const uint8_t* pix00 = sample_2d< uint8_t, border_type::clamp >(m_grad, m_sampler, x - 1, y - 1);
+            const uint8_t* pix01 = sample_2d< uint8_t, border_type::clamp >(m_grad, m_sampler, x - 0, y - 1);
+            const uint8_t* pix02 = sample_2d< uint8_t, border_type::clamp >(m_grad, m_sampler, x + 1, y - 1);
 
-            const auto* pix10 = sample_2d< float, border_type::clamp>(m_grad, m_sampler, x - 1, y);
-            const auto* pix11 = sample_2d< float, border_type::clamp>(m_grad, m_sampler, x - 0, y);
-            const auto* pix12 = sample_2d< float, border_type::clamp>(m_grad, m_sampler, x + 1, y);
+            const uint8_t* pix10 = sample_2d< uint8_t, border_type::clamp>(m_grad, m_sampler, x - 1, y);
+            const uint8_t* pix11 = sample_2d< uint8_t, border_type::clamp>(m_grad, m_sampler, x - 0, y);
+            const uint8_t* pix12 = sample_2d< uint8_t, border_type::clamp>(m_grad, m_sampler, x + 1, y);
 
-            const auto* pix20 = sample_2d< float, border_type::clamp >(m_grad, m_sampler, x - 1, y + 1);
-            const auto* pix21 = sample_2d< float, border_type::clamp >(m_grad, m_sampler, x - 0, y + 1);
-            const auto* pix22 = sample_2d< float, border_type::clamp >(m_grad, m_sampler, x + 1, y + 1);
+            const uint8_t* pix20 = sample_2d< uint8_t, border_type::clamp >(m_grad, m_sampler, x - 1, y + 1);
+            const uint8_t* pix21 = sample_2d< uint8_t, border_type::clamp >(m_grad, m_sampler, x - 0, y + 1);
+            const uint8_t* pix22 = sample_2d< uint8_t, border_type::clamp >(m_grad, m_sampler, x + 1, y + 1);
              
             auto  u00 = *pix00;
             auto  u01 = *pix01;
@@ -153,14 +153,14 @@ namespace freeform
             //mx = *pix11;
             uint32_t stop = 0;
 
-            if ( mx > 0.90f   || x > (w - 4) || y > ( h - 4) || x < 4 || y < 4 ) 
+            if ( mx > 250  || x > (w - 4) || y > ( h - 4) || x < 4 || y < 4 ) 
             {  
                 d0   = pt;
                 stop = 1;
             }
             else
             {
-                auto muls = 1.0f;
+                auto muls = 1.0f / 255.0f;
 
                 auto u10f  = u10 * muls;
                 auto u12f  = u12 * muls;
